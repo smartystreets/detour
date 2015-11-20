@@ -8,10 +8,10 @@ import (
 type ModelBinder struct {
 	input   InputModelFactory
 	domain  DomainHandler
-	handler Handler
+	handler WebHandler
 }
 
-func NewModelBinderHandler(input InputModelFactory, handler Handler) *ModelBinder {
+func NewModelBinderHandler(input InputModelFactory, handler WebHandler) *ModelBinder {
 	return &ModelBinder{
 		input:   input,
 		handler: handler,
@@ -61,7 +61,7 @@ func (this *ModelBinder) validate(message interface{}) error {
 
 func (this *ModelBinder) handle(response http.ResponseWriter, request *http.Request, message interface{}) {
 	if this.handler != nil {
-		this.handler.Handle(response, request, message)
+		this.handler(response, request, message)
 		return
 	}
 

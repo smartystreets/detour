@@ -74,7 +74,7 @@ func (this *ModelBinderFixture) TestNilResponseFromApplication__HTTP200() {
 }
 
 func (this *ModelBinderFixture) TestGenericHandlerAsApplication__HTTP200() {
-	binder := NewModelBinderHandler(NewGenericHandlerInputModel, &GenericHandler{})
+	binder := NewModelBinderHandler(NewGenericHandlerInputModel, (&GenericHandler{}).Handle)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: GenericHandlerInputModel")

@@ -6,6 +6,7 @@ type (
 	InputModelFactory func() interface{}
 
 	DomainHandler func(interface{}) http.Handler
+	WebHandler    func(response http.ResponseWriter, request *http.Request, message interface{})
 
 	Binder interface {
 		Bind(request *http.Request) error
@@ -17,9 +18,5 @@ type (
 
 	Translator interface {
 		Translate() interface{}
-	}
-
-	Handler interface {
-		Handle(response http.ResponseWriter, request *http.Request, message interface{})
 	}
 )
