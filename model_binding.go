@@ -32,6 +32,8 @@ func (this *ModelBinder) ServeHTTP(response http.ResponseWriter, request *http.R
 		writeJSONError(response, err, http.StatusBadRequest)
 	} else if err := this.validate(message); err != nil {
 		writeJSONError(response, err, httpStatusUnprocessableEntity)
+	} else if this.controller != nil {
+		this.controller(response, request, message)
 	} else {
 		this.handle(response, request, message)
 	}
@@ -63,11 +65,6 @@ func (this *ModelBinder) validate(message interface{}) error {
 }
 
 func (this *ModelBinder) handle(response http.ResponseWriter, request *http.Request, message interface{}) {
-	if this.controller != nil {
-		this.controller(response, request, message)
-		return
-	}
-
 	if translator, ok := message.(Translator); ok {
 		message = translator.Translate()
 	}
