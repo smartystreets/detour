@@ -7,39 +7,38 @@ import (
 )
 
 type ModelBinder struct {
-	input      InputModelFactory
 	domain     DomainAction
 	controller ControllerAction
+	input      InputFactory
 }
 
 func Default(controllerAction interface{}) *ModelBinder {
 	inputType := parseInputModelType(controllerAction).Elem()
 	callback := reflect.ValueOf(controllerAction)
 	return Controller(
-		func() interface{} { return reflect.New(inputType).Interface() },
 		func(w http.ResponseWriter, r *http.Request, m interface{}) {
 			callback.Call([]reflect.Value{reflect.ValueOf(w), reflect.ValueOf(r), reflect.ValueOf(m)})
 		},
+		func() interface{} { return reflect.New(inputType).Interface() },
 	)
 }
-
 func Generic(callback ControllerAction, message interface{}) *ModelBinder {
 	inputType := reflect.TypeOf(message).Elem()
-	var factory InputModelFactory = func() interface{} { return reflect.New(inputType).Interface() }
-	return Controller(factory, callback)
+	var factory InputFactory = func() interface{} { return reflect.New(inputType).Interface() }
+	return Controller(callback, factory)
 }
 
-func Controller(input InputModelFactory, callback ControllerAction) *ModelBinder {
+func Controller(callback ControllerAction, input InputFactory) *ModelBinder {
 	return &ModelBinder{
-		input:      input,
 		controller: callback,
+		input:      input,
 	}
 }
 
-func Domain(input InputModelFactory, callback DomainAction) *ModelBinder {
+func Domain(callback DomainAction, input InputFactory) *ModelBinder {
 	return &ModelBinder{
-		input:  input,
 		domain: callback,
+		input:  input,
 	}
 }
 

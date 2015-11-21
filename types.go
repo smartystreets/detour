@@ -3,13 +3,12 @@ package binding
 import "net/http"
 
 type (
-	InputModelFactory func() interface{}
-
+	InputFactory     func() interface{}
 	DomainAction     func(interface{}) http.Handler
-	ControllerAction func(response http.ResponseWriter, request *http.Request, message interface{})
+	ControllerAction func(http.ResponseWriter, *http.Request, interface{})
 
 	Binder interface {
-		Bind(request *http.Request) error
+		Bind(*http.Request) error
 	}
 
 	Validator interface {
