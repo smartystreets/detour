@@ -58,7 +58,7 @@ func writeJSONError(response http.ResponseWriter, err error, code int) {
 }
 
 func (this *ModelBinder) bind(request *http.Request, message interface{}) error {
-	// FUTURE: if request has a Body (PUT/POST)
+	// FUTURE: if request has a Body (PUT/POST) and Content-Type: json
 	if binder, ok := message.(Binder); !ok {
 		return nil
 	} else if err := request.ParseForm(); err != nil {
@@ -107,8 +107,6 @@ func parseInputModelType(function interface{}) reflect.Type {
 	} else {
 		return typed.In(2)
 	}
-
-	return reflect.TypeOf(0)
 }
 
 //////////////////////////////////////////////////////////////////////////////
