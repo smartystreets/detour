@@ -23,6 +23,12 @@ func Default(controllerAction interface{}) *ModelBinder {
 	)
 }
 
+func Generic(callback ControllerAction, message interface{}) *ModelBinder {
+	inputType := reflect.TypeOf(message).Elem()
+	var factory InputModelFactory = func() interface{} { return reflect.New(inputType).Interface() }
+	return Controller(factory, callback)
+}
+
 func Controller(input InputModelFactory, callback ControllerAction) *ModelBinder {
 	return &ModelBinder{
 		input:      input,
@@ -58,7 +64,7 @@ func writeJSONError(response http.ResponseWriter, err error, code int) {
 }
 
 func (this *ModelBinder) bind(request *http.Request, message interface{}) error {
-	// FUTURE: if request has a Body (PUT/POST) and Content-Type: json
+	// FUTURE: if request has a Body (PUT/POST) and Content-Type: application/json
 	if binder, ok := message.(Binder); !ok {
 		return nil
 	} else if err := request.ParseForm(); err != nil {
