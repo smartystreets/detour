@@ -6,22 +6,22 @@ import (
 )
 
 type ModelBinder struct {
-	input   InputModelFactory
-	domain  DomainHandler
-	handler WebHandler
+	input      InputModelFactory
+	domain     DomainAction
+	controller ControllerAction
 }
 
-func NewModelBinderHandler(input InputModelFactory, handler WebHandler) *ModelBinder {
+func NewBinder(input InputModelFactory, callback ControllerAction) *ModelBinder {
 	return &ModelBinder{
-		input:   input,
-		handler: handler,
+		input:      input,
+		controller: callback,
 	}
 }
 
-func NewDomainModelBinder(input InputModelFactory, domain DomainHandler) *ModelBinder {
+func NewDomainBinder(input InputModelFactory, callback DomainAction) *ModelBinder {
 	return &ModelBinder{
 		input:  input,
-		domain: domain,
+		domain: callback,
 	}
 }
 
@@ -60,8 +60,8 @@ func (this *ModelBinder) validate(message interface{}) error {
 }
 
 func (this *ModelBinder) handle(response http.ResponseWriter, request *http.Request, message interface{}) {
-	if this.handler != nil {
-		this.handler(response, request, message)
+	if this.controller != nil {
+		this.controller(response, request, message)
 		return
 	}
 

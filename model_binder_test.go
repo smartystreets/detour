@@ -23,21 +23,21 @@ func (this *ModelBinderFixture) Setup() {
 }
 
 func (this *ModelBinderFixture) TestBasicInputModelProvidedToApplication__HTTP200() {
-	binder := NewDomainModelBinder(NewBlankBasicInputModel, this.app.HandleBasicInputModel)
+	binder := NewDomainBinder(NewBlankBasicInputModel, this.app.HandleBasicInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: BasicInputModel")
 }
 
 func (this *ModelBinderFixture) TestBindsModelForApplication__HTTP200() {
-	binder := NewDomainModelBinder(NewBindingInputModel, this.app.HandleBindingInputModel)
+	binder := NewDomainBinder(NewBindingInputModel, this.app.HandleBindingInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: BindingInputModel")
 }
 
 func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400() {
-	binder := NewDomainModelBinder(NewBindingFailsInputModel, this.app.HandleBindingFailsInputModel)
+	binder := NewDomainBinder(NewBindingFailsInputModel, this.app.HandleBindingFailsInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 400)
 	this.So(this.response.Header().Get("Content-Type"), should.Equal, "application/json")
@@ -45,14 +45,14 @@ func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400() {
 }
 
 func (this *ModelBinderFixture) TestValidatesModelForApplication__HTTP200() {
-	binder := NewDomainModelBinder(NewValidatingInputModel, this.app.HandleValidatingInputModel)
+	binder := NewDomainBinder(NewValidatingInputModel, this.app.HandleValidatingInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: ValidatingInputModel")
 }
 
 func (this *ModelBinderFixture) TestValidatesModelAndHandlesError__HTTP422() {
-	binder := NewDomainModelBinder(NewValidatingFailsInputModel, this.app.HandleValidatingFailsInputModel)
+	binder := NewDomainBinder(NewValidatingFailsInputModel, this.app.HandleValidatingFailsInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 422)
 	this.So(this.response.Header().Get("Content-Type"), should.Equal, "application/json")
@@ -60,21 +60,21 @@ func (this *ModelBinderFixture) TestValidatesModelAndHandlesError__HTTP422() {
 }
 
 func (this *ModelBinderFixture) TestTranslatesModelForApplication__HTTP200() {
-	binder := NewDomainModelBinder(NewTranslatingInputModel, this.app.HandleTranslatingInputModel)
+	binder := NewDomainBinder(NewTranslatingInputModel, this.app.HandleTranslatingInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: TranslatingInputModel")
 }
 
 func (this *ModelBinderFixture) TestNilResponseFromApplication__HTTP200() {
-	binder := NewDomainModelBinder(NewNilResponseInputModel, this.app.HandleNilResponseInputModel)
+	binder := NewDomainBinder(NewNilResponseInputModel, this.app.HandleNilResponseInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.BeBlank)
 }
 
 func (this *ModelBinderFixture) TestGenericHandlerAsApplication__HTTP200() {
-	binder := NewModelBinderHandler(NewGenericHandlerInputModel, (&GenericHandler{}).Handle)
+	binder := NewBinder(NewGenericHandlerInputModel, (&GenericHandler{}).Handle)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: GenericHandlerInputModel")
