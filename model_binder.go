@@ -22,11 +22,6 @@ func Default(controllerAction interface{}) *ModelBinder {
 		func() interface{} { return reflect.New(inputType).Interface() },
 	)
 }
-func Generic(callback ControllerAction, message interface{}) *ModelBinder {
-	inputType := reflect.TypeOf(message).Elem()
-	var factory InputFactory = func() interface{} { return reflect.New(inputType).Interface() }
-	return Controller(callback, factory)
-}
 
 func Controller(callback ControllerAction, input InputFactory) *ModelBinder {
 	return &ModelBinder{
