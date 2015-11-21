@@ -3,12 +3,24 @@ package binding
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 )
 
 type ModelBinder struct {
 	input      InputModelFactory
 	domain     DomainAction
 	controller ControllerAction
+}
+
+func New(controllerAction interface{}) *ModelBinder {
+	inputType := parseInputModelType(controllerAction).Elem()
+	callback := reflect.ValueOf(controllerAction)
+	return NewBinder(
+		func() interface{} { return reflect.New(inputType).Interface() },
+		func(w http.ResponseWriter, r *http.Request, m interface{}) {
+			callback.Call([]reflect.Value{reflect.ValueOf(w), reflect.ValueOf(r), reflect.ValueOf(m)})
+		},
+	)
 }
 
 func NewBinder(input InputModelFactory, callback ControllerAction) *ModelBinder {
@@ -76,6 +88,27 @@ func (this *ModelBinder) handle(response http.ResponseWriter, request *http.Requ
 	if result := this.domain(message); result != nil {
 		result.ServeHTTP(response, request)
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+func parseInputModelType(function interface{}) reflect.Type {
+	typed := reflect.TypeOf(function)
+	if typed.Kind() != reflect.Func {
+		panic("The controller callback provided is not a function.")
+	} else if argumentCount := typed.NumIn(); argumentCount != 3 {
+		panic("The controller callback provided must have exactly three arguments.")
+	} else if !typed.In(0).Implements(reflect.TypeOf((*http.ResponseWriter)(nil)).Elem()) {
+		panic("The first argument to the controller callback must of type http.ResponseWriter.")
+	} else if typed.In(1) != reflect.TypeOf(&http.Request{}) {
+		panic("The second argument to the controller callback must of type http.ResponseWriter.")
+	} else if typed.In(2).Kind() != reflect.Ptr {
+		panic("The third argument to the controller callback must be a pointer type.")
+	} else {
+		return typed.In(2)
+	}
+
+	return reflect.TypeOf(0)
 }
 
 //////////////////////////////////////////////////////////////////////////////

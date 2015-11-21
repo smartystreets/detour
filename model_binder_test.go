@@ -1,6 +1,7 @@
 package binding
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 
@@ -85,4 +86,29 @@ func (this *ModelBinderFixture) TestGenericHandlerAsApplication__HTTP200() {
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: GenericHandlerInputModel")
+}
+
+////////////////////////////////////////////////////////////
+
+func (this *ModelBinderFixture) TestInputModelParsingFromCallback() {
+	this.assertPanic(0)                                                                 // not a method
+	this.assertPanic(func(int) {})                                                      // too few arguments (need 3 arguments)
+	this.assertPanic(func(int, int, int) {})                                            // bad first argument (not http.ResponseWriter)
+	this.assertPanic(func(http.ResponseWriter, int, int) {})                            // bad second argument (not *http.Request)
+	this.assertPanic(func(http.ResponseWriter, *http.Request, BlankBasicInputModel) {}) // bad third argument (not a pointer)
+	this.So(func() { parseInputModelType(func(http.ResponseWriter, *http.Request, *BlankBasicInputModel) {}) }, should.NotPanic)
+}
+func (this *ModelBinderFixture) assertPanic(callback interface{}) {
+	this.So(func() { parseInputModelType(callback) }, should.Panic)
+}
+
+func (this *ModelBinderFixture) TestModelBinding() {
+	binder := New(func(w http.ResponseWriter, r *http.Request, input *BindingInputModel) {
+		fmt.Fprintf(w, input.Content)
+	})
+
+	binder.ServeHTTP(this.response, this.request)
+
+	this.So(this.response.Code, should.Equal, 200)
+	this.So(this.response.Body.String(), should.Equal, "BindingInputModel")
 }
