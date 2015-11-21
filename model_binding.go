@@ -44,6 +44,7 @@ func writeJSONError(response http.ResponseWriter, err error, code int) {
 }
 
 func (this *ModelBinder) bind(request *http.Request, message interface{}) error {
+	// FUTURE: if request has a Body (PUT/POST)
 	if binder, ok := message.(Binder); !ok {
 		return nil
 	} else if err := request.ParseForm(); err != nil {
