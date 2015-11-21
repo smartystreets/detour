@@ -12,10 +12,10 @@ type ModelBinder struct {
 	controller ControllerAction
 }
 
-func New(controllerAction interface{}) *ModelBinder {
+func DefaultBinder(controllerAction interface{}) *ModelBinder {
 	inputType := parseInputModelType(controllerAction).Elem()
 	callback := reflect.ValueOf(controllerAction)
-	return NewBinder(
+	return ControllerBinder(
 		func() interface{} { return reflect.New(inputType).Interface() },
 		func(w http.ResponseWriter, r *http.Request, m interface{}) {
 			callback.Call([]reflect.Value{reflect.ValueOf(w), reflect.ValueOf(r), reflect.ValueOf(m)})
@@ -23,14 +23,14 @@ func New(controllerAction interface{}) *ModelBinder {
 	)
 }
 
-func NewBinder(input InputModelFactory, callback ControllerAction) *ModelBinder {
+func ControllerBinder(input InputModelFactory, callback ControllerAction) *ModelBinder {
 	return &ModelBinder{
 		input:      input,
 		controller: callback,
 	}
 }
 
-func NewDomainBinder(input InputModelFactory, callback DomainAction) *ModelBinder {
+func DomainBinder(input InputModelFactory, callback DomainAction) *ModelBinder {
 	return &ModelBinder{
 		input:  input,
 		domain: callback,
