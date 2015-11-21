@@ -21,6 +21,9 @@ func (this *Application) HandleBindingFailsInputModel(model interface{}) http.Ha
 func (this *Application) HandleValidatingInputModel(model interface{}) http.Handler {
 	return &ApplicationResponse{Body: model.(*ValidatingInputModel).Content}
 }
+func (this *Application) HandleValidatingEmptyErrors(model interface{}) http.Handler {
+	return &ApplicationResponse{Body: model.(*ValidatingEmptyErrorsInputModel).Content}
+}
 func (this *Application) HandleValidatingFailsInputModel(model interface{}) http.Handler {
 	panic("We shouldn't reach this point because the validation failed.")
 }
@@ -105,12 +108,21 @@ func NewValidatingFailsInputModel() interface{} {
 	return &ValidatingFailsInputModel{}
 }
 
-func (this *ValidatingFailsInputModel) Bind(request *http.Request) error {
-	return nil
-}
-
 func (this *ValidatingFailsInputModel) Validate() error {
 	return NewBindingValidationError("ValidatingFailsInputModel")
+}
+
+/////
+
+type ValidatingEmptyErrorsInputModel struct{ Content string }
+
+func NewValidatingEmptyInputModel() interface{} {
+	return &ValidatingEmptyErrorsInputModel{}
+}
+func (this *ValidatingEmptyErrorsInputModel) Validate() error {
+	this.Content = "ValidatingEmptyErrorsInputModel"
+	var errors ValidationErrors
+	return errors
 }
 
 /////

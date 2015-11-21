@@ -59,6 +59,13 @@ func (this *ModelBinderFixture) TestValidatesModelAndHandlesError__HTTP422() {
 	this.So(this.response.Body.String(), should.ContainSubstring, "ValidatingFailsInputModel")
 }
 
+func (this *ModelBinderFixture) TestValidatesModelEmptyValidationErrors__HTTP200() {
+	binder := NewDomainBinder(NewValidatingEmptyInputModel, this.app.HandleValidatingEmptyErrors)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 200)
+	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: ValidatingEmptyErrorsInputModel")
+}
+
 func (this *ModelBinderFixture) TestTranslatesModelForApplication__HTTP200() {
 	binder := NewDomainBinder(NewTranslatingInputModel, this.app.HandleTranslatingInputModel)
 	binder.ServeHTTP(this.response, this.request)

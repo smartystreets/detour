@@ -59,8 +59,12 @@ func (this *ModelBinder) bind(request *http.Request, message interface{}) error 
 func (this *ModelBinder) validate(message interface{}) error {
 	if validator, ok := message.(Validator); !ok {
 		return nil
+	} else if err := validator.Validate(); err == nil {
+		return nil
+	} else if errors, ok := err.(ValidationErrors); ok && len(errors) == 0 {
+		return nil
 	} else {
-		return validator.Validate()
+		return err
 	}
 }
 
