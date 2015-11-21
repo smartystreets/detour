@@ -62,7 +62,6 @@ func NewBindingInputModel() interface{} {
 }
 
 func (this *BindingInputModel) Bind(request *http.Request) error {
-	request.ParseForm()
 	this.Content = request.Form.Get("binding")
 	return nil
 }
@@ -90,8 +89,6 @@ func NewValidatingInputModel() interface{} {
 }
 
 func (this *ValidatingInputModel) Bind(request *http.Request) error {
-	request.ParseForm()
-	this.Content = request.Form.Get("binding")
 	return nil
 }
 
