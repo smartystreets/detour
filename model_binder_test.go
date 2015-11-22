@@ -82,7 +82,7 @@ func (this *ModelBinderFixture) TestNilResponseFromApplication__HTTP200() {
 }
 
 func (this *ModelBinderFixture) TestGenericHandlerAsApplication__HTTP200() {
-	binder := Controller((&GenericHandler{}).Handle, NewGenericHandlerInputModel)
+	binder := GenericFactory((&GenericHandler{}).Handle, NewGenericHandlerInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: GenericHandlerInputModel")
@@ -103,9 +103,7 @@ func (this *ModelBinderFixture) assertPanic(callback interface{}) {
 }
 
 func (this *ModelBinderFixture) TestModelBinding() {
-	binder := Default(func(w http.ResponseWriter, r *http.Request, input *BindingInputModel) {
-		fmt.Fprintf(w, input.Content)
-	})
+	binder := Typed(func(w http.ResponseWriter, r *http.Request, input *BindingInputModel) { fmt.Fprintf(w, input.Content) })
 
 	binder.ServeHTTP(this.response, this.request)
 
