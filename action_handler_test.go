@@ -42,6 +42,13 @@ func (this *ModelBinderFixture) TestBindsModelForApplication__HTTP200() {
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: BindingInputModel")
 }
 
+func (this *ModelBinderFixture) TestBindsFormParseFails__HTTP400() {
+	binder := New(this.controller.HandleBindingInputModel)
+	this.request.Method = "PUT"
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, http.StatusBadRequest)
+}
+
 func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400() {
 	binder := New(this.controller.HandleBindingFailsInputModel)
 	binder.ServeHTTP(this.response, this.request)
@@ -85,6 +92,7 @@ func (this *ModelBinderFixture) TestModelParsingFromCallback() {
 	this.assertPanic(0)                                   // not a method
 	this.assertPanic(func() {})                           // no input
 	this.assertPanic(func(int) {})                        // not a pointer
+	this.assertPanic(func(*int, *int) {})                 // not a pointer
 	this.So(func() { parseModelType(func(*BlankBasicInputModel) {} ) }, should.Panic) // doesn't return a Renderer
 	this.So(func() { parseModelType(func(*BlankBasicInputModel) Renderer { return nil }) }, should.NotPanic)
 }

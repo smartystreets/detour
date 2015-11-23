@@ -1,3 +1,4 @@
 .idea
 binding.iml
 generated_by_gunit_test.go
+coverage.out
