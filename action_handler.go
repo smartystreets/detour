@@ -17,7 +17,7 @@ func New(controllerAction interface{}) http.Handler {
 	return withFactory(controllerAction, factory)
 }
 
-func withFactory(controllerAction interface{}, input CreateModel) *ActionHandler {
+func withFactory(controllerAction interface{}, input CreateModel) http.Handler {
 	callbackType := reflect.ValueOf(controllerAction)
 	var callback ControllerAction = func(m interface{}) Renderer {
 		results := callbackType.Call([]reflect.Value{reflect.ValueOf(m)})
@@ -49,7 +49,6 @@ func parseModelType(action interface{}) reflect.Type {
 
 func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	message := this.input()
-
 	if err := this.bind(request, message); err != nil {
 		writeJSONError(response, err, http.StatusBadRequest)
 	} else if err := this.validate(message); err != nil {
