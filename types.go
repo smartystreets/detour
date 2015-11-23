@@ -4,8 +4,7 @@ import "net/http"
 
 type (
 	InputFactory     func() interface{}
-	DomainAction     func(interface{}) http.Handler
-	ControllerAction func(http.ResponseWriter, *http.Request, interface{})
+	ControllerAction func(interface{}) Renderer
 
 	Binder interface {
 		Bind(*http.Request) error
@@ -15,7 +14,7 @@ type (
 		Validate() error
 	}
 
-	Translator interface {
-		Translate() interface{}
+	Renderer interface {
+		Render(http.ResponseWriter, *http.Request)
 	}
 )

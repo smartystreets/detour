@@ -1,45 +1,31 @@
 package binding
 
-import (
-	"fmt"
-	"net/http"
-)
+import "net/http"
 
 ///////////////////////////////////////////////////////////////
 
-type Application struct{}
+type Controller struct{}
 
-func (this *Application) HandleBasicInputModel(model interface{}) http.Handler {
-	return &ApplicationResponse{Body: model.(*BlankBasicInputModel).Content}
+func (this *Controller) HandleBasicInputModel(model *BlankBasicInputModel) Renderer {
+	return &ControllerResponse{Body: model.Content}
 }
-func (this *Application) HandleBindingInputModel(model interface{}) http.Handler {
-	return &ApplicationResponse{Body: model.(*BindingInputModel).Content}
+func (this *Controller) HandleBindingInputModel(model *BindingInputModel) Renderer {
+	return &ControllerResponse{Body: model.Content}
 }
-func (this *Application) HandleBindingFailsInputModel(model interface{}) http.Handler {
+func (this *Controller) HandleBindingFailsInputModel(model *BindingFailsInputModel) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
-func (this *Application) HandleValidatingInputModel(model interface{}) http.Handler {
-	return &ApplicationResponse{Body: model.(*ValidatingInputModel).Content}
+func (this *Controller) HandleValidatingInputModel(model *ValidatingInputModel) Renderer {
+	return &ControllerResponse{Body: model.Content}
 }
-func (this *Application) HandleValidatingEmptyErrors(model interface{}) http.Handler {
-	return &ApplicationResponse{Body: model.(*ValidatingEmptyErrorsInputModel).Content}
+func (this *Controller) HandleValidatingEmptyErrors(model *ValidatingEmptyErrorsInputModel) Renderer {
+	return &ControllerResponse{Body: model.Content}
 }
-func (this *Application) HandleValidatingFailsInputModel(model interface{}) http.Handler {
+func (this *Controller) HandleValidatingFailsInputModel(model *ValidatingFailsInputModel) Renderer {
 	panic("We shouldn't reach this point because the validation failed.")
 }
-func (this *Application) HandleTranslatingInputModel(model interface{}) http.Handler {
-	return &ApplicationResponse{Body: model.(string)}
-}
-func (this *Application) HandleNilResponseInputModel(model interface{}) http.Handler {
+func (this *Controller) HandleNilResponseInputModel(model *NilResponseInputModel) Renderer {
 	return nil
-}
-
-/////
-
-type GenericHandler struct{}
-
-func (this *GenericHandler) Handle(response http.ResponseWriter, request *http.Request, model interface{}) {
-	fmt.Fprint(response, "Just handled: ", model.(*GenericHandlerInputModel).Content)
 }
 
 ///////////////////////////////////////////////////////////////
@@ -49,19 +35,13 @@ type BlankBasicInputModel struct {
 }
 
 func NewBlankBasicInputModel() interface{} {
-	return &BlankBasicInputModel{
-		Content: "BasicInputModel",
-	}
+	return &BlankBasicInputModel{Content: "BasicInputModel"}
 }
 
 /////
 
 type BindingInputModel struct {
 	Content string
-}
-
-func NewBindingInputModel() interface{} {
-	return &BindingInputModel{}
 }
 
 func (this *BindingInputModel) Bind(request *http.Request) error {
@@ -73,10 +53,6 @@ func (this *BindingInputModel) Bind(request *http.Request) error {
 
 type BindingFailsInputModel struct{}
 
-func NewBindingFailsInputModel() interface{} {
-	return &BindingFailsInputModel{}
-}
-
 func (this *BindingFailsInputModel) Bind(request *http.Request) error {
 	return NewBindingValidationError("BindingFailsInputModel")
 }
@@ -85,10 +61,6 @@ func (this *BindingFailsInputModel) Bind(request *http.Request) error {
 
 type ValidatingInputModel struct {
 	Content string
-}
-
-func NewValidatingInputModel() interface{} {
-	return &ValidatingInputModel{}
 }
 
 func (this *ValidatingInputModel) Bind(request *http.Request) error {
@@ -104,10 +76,6 @@ func (this *ValidatingInputModel) Validate() error {
 
 type ValidatingFailsInputModel struct{}
 
-func NewValidatingFailsInputModel() interface{} {
-	return &ValidatingFailsInputModel{}
-}
-
 func (this *ValidatingFailsInputModel) Validate() error {
 	return NewBindingValidationError("ValidatingFailsInputModel")
 }
@@ -116,9 +84,6 @@ func (this *ValidatingFailsInputModel) Validate() error {
 
 type ValidatingEmptyErrorsInputModel struct{ Content string }
 
-func NewValidatingEmptyInputModel() interface{} {
-	return &ValidatingEmptyErrorsInputModel{}
-}
 func (this *ValidatingEmptyErrorsInputModel) Validate() error {
 	this.Content = "ValidatingEmptyErrorsInputModel"
 	var errors ValidationErrors
@@ -127,43 +92,15 @@ func (this *ValidatingEmptyErrorsInputModel) Validate() error {
 
 /////
 
-type TranslatingInputModel struct{}
-
-func NewTranslatingInputModel() interface{} {
-	return &TranslatingInputModel{}
-}
-
-func (this *TranslatingInputModel) Translate() interface{} {
-	return "TranslatingInputModel"
-}
-
-/////
-
 type NilResponseInputModel struct{}
-
-func NewNilResponseInputModel() interface{} {
-	return &NilResponseInputModel{}
-}
-
-/////
-
-type GenericHandlerInputModel struct {
-	Content string
-}
-
-func NewGenericHandlerInputModel() interface{} {
-	return &GenericHandlerInputModel{
-		Content: "GenericHandlerInputModel",
-	}
-}
 
 ////////////////////////////////////////////////////////////////
 
-type ApplicationResponse struct {
+type ControllerResponse struct {
 	Body string
 }
 
-func (this *ApplicationResponse) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+func (this *ControllerResponse) Render(response http.ResponseWriter, request *http.Request) {
 	http.Error(response, "Just handled: "+this.Body, http.StatusOK)
 }
 

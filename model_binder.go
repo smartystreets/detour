@@ -6,52 +6,54 @@ import (
 	"reflect"
 )
 
-type ModelBinder struct {
-	domain     DomainAction
+type ActionHandler struct {
 	controller ControllerAction
 	input      InputFactory
 }
 
-func Typed(controllerAction interface{}) *ModelBinder {
+func Typed(controllerAction interface{}) *ActionHandler {
 	inputType := parseInputModelType(controllerAction).Elem()
 	var factory InputFactory = func() interface{} { return reflect.New(inputType).Interface() }
 	return TypedFactory(controllerAction, factory)
 }
 
-func TypedFactory(controllerAction interface{}, input InputFactory) *ModelBinder {
+func TypedFactory(controllerAction interface{}, input InputFactory) *ActionHandler {
 	callbackType := reflect.ValueOf(controllerAction)
-	var callback ControllerAction = func(w http.ResponseWriter, r *http.Request, m interface{}) {
-		callbackType.Call([]reflect.Value{reflect.ValueOf(w), reflect.ValueOf(r), reflect.ValueOf(m)})
+	var callback ControllerAction = func(m interface{}) Renderer {
+		results := callbackType.Call([]reflect.Value{reflect.ValueOf(m)})
+		result := results[0]
+		if result.IsNil() {
+			return nil
+		}
+		return result.Elem().Interface().(Renderer)
 	}
-	return GenericFactory(callback, input)
+	return &ActionHandler{controller: callback, input: input}
 }
 
-func Generic(callback ControllerAction, message interface{}) *ModelBinder {
-	inputType := reflect.TypeOf(message).Elem()
-	var factory InputFactory = func() interface{} { return reflect.New(inputType).Interface() }
-	return GenericFactory(callback, factory)
-}
-
-func GenericFactory(callback ControllerAction, input InputFactory) *ModelBinder {
-	return &ModelBinder{controller: callback, input: input}
-}
-
-func Domain(callback DomainAction, input InputFactory) *ModelBinder {
-	return &ModelBinder{
-		domain: callback,
-		input:  input,
+func parseInputModelType(function interface{}) reflect.Type {
+	typed := reflect.TypeOf(function)
+	if typed.Kind() != reflect.Func {
+		panic("The controller callback provided is not a function.")
+	} else if argumentCount := typed.NumIn(); argumentCount != 1 {
+		panic("The controller callback provided must have exactly one argument.")
+	} else if typed.In(0).Kind() != reflect.Ptr {
+		panic("The first argument to the controller callback must be a pointer type.")
+//	} else if true { // TODO
+//		panic("The Return type must implement Renderer")
+	} else {
+		return typed.In(0)
 	}
 }
 
-func (this *ModelBinder) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+//////////////////////////////////////////////////////////////////////////////
+
+func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	message := this.input()
 
 	if err := this.bind(request, message); err != nil {
 		writeJSONError(response, err, http.StatusBadRequest)
 	} else if err := this.validate(message); err != nil {
 		writeJSONError(response, err, httpStatusUnprocessableEntity)
-	} else if this.controller != nil {
-		this.controller(response, request, message)
 	} else {
 		this.handle(response, request, message)
 	}
@@ -63,7 +65,7 @@ func writeJSONError(response http.ResponseWriter, err error, code int) {
 	fmt.Fprint(response, err.Error())
 }
 
-func (this *ModelBinder) bind(request *http.Request, message interface{}) error {
+func (this *ActionHandler) bind(request *http.Request, message interface{}) error {
 	// FUTURE: if request has a Body (PUT/POST) and Content-Type: application/json
 	if binder, ok := message.(Binder); !ok {
 		return nil
@@ -74,7 +76,7 @@ func (this *ModelBinder) bind(request *http.Request, message interface{}) error 
 	}
 }
 
-func (this *ModelBinder) validate(message interface{}) error {
+func (this *ActionHandler) validate(message interface{}) error {
 	if validator, ok := message.(Validator); !ok {
 		return nil
 	} else if err := validator.Validate(); err == nil {
@@ -86,35 +88,10 @@ func (this *ModelBinder) validate(message interface{}) error {
 	}
 }
 
-func (this *ModelBinder) handle(response http.ResponseWriter, request *http.Request, message interface{}) {
-	if translator, ok := message.(Translator); ok {
-		message = translator.Translate()
-	}
-
-	if result := this.domain(message); result != nil {
-		result.ServeHTTP(response, request)
+func (this *ActionHandler) handle(response http.ResponseWriter, request *http.Request, message interface{}) {
+	if result := this.controller(message); result != nil {
+		result.Render(response, request)
 	}
 }
-
-//////////////////////////////////////////////////////////////////////////////
-
-func parseInputModelType(function interface{}) reflect.Type {
-	typed := reflect.TypeOf(function)
-	if typed.Kind() != reflect.Func {
-		panic("The controller callback provided is not a function.")
-	} else if argumentCount := typed.NumIn(); argumentCount != 3 {
-		panic("The controller callback provided must have exactly three arguments.")
-	} else if !typed.In(0).Implements(reflect.TypeOf((*http.ResponseWriter)(nil)).Elem()) {
-		panic("The first argument to the controller callback must of type http.ResponseWriter.")
-	} else if typed.In(1) != reflect.TypeOf(&http.Request{}) {
-		panic("The second argument to the controller callback must of type http.ResponseWriter.")
-	} else if typed.In(2).Kind() != reflect.Ptr {
-		panic("The third argument to the controller callback must be a pointer type.")
-	} else {
-		return typed.In(2)
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////////
 
 const httpStatusUnprocessableEntity = 422
