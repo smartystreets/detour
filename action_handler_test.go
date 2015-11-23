@@ -75,23 +75,24 @@ func (this *ModelBinderFixture) TestNilResponseFromApplication__HTTP200() {
 
 ////////////////////////////////////////////////////////////
 
-//func (this *ModelBinderFixture) TestInputModelParsingFromCallback() {
-//	this.assertPanic(0)                                                                 // not a method
-//	this.assertPanic(func(int) {})                                                      // too few arguments (need 3 arguments)
-//	this.assertPanic(func(int, int, int) {})                                            // bad first argument (not http.ResponseWriter)
-//	this.assertPanic(func(http.ResponseWriter, int, int) {})                            // bad second argument (not *http.Request)
-//	this.assertPanic(func(http.ResponseWriter, *http.Request, BlankBasicInputModel) {}) // bad third argument (not a pointer)
-//	this.So(func() { parseInputModelType(func(http.ResponseWriter, *http.Request, *BlankBasicInputModel) {}) }, should.NotPanic)
-//}
-//func (this *ModelBinderFixture) assertPanic(callback interface{}) {
-//	this.So(func() { parseInputModelType(callback) }, should.Panic)
-//}
+func (this *ModelBinderFixture) TestModelParsingFromCallback() {
+	this.assertPanic(0)                                   // not a method
+	this.assertPanic(func() {})                           // no input
+	this.assertPanic(func(int) {})                        // not a pointer
+	this.So(func() { parseModelType(func(*BlankBasicInputModel) {} ) }, should.Panic) // doesn't return a Renderer
+	this.So(func() { parseModelType(func(*BlankBasicInputModel) Renderer { return nil }) }, should.NotPanic)
+}
+func (this *ModelBinderFixture) assertPanic(callback interface{}) {
+	this.So(func() { parseModelType(callback) }, should.Panic)
+}
 
-//func (this *ModelBinderFixture) TestModelBinding() {
-//	binder := Typed(func(input *BindingInputModel) Renderer { fmt.Fprintf(w, input.Content) })
-//
-//	binder.ServeHTTP(this.response, this.request)
-//
-//	this.So(this.response.Code, should.Equal, 200)
-//	this.So(this.response.Body.String(), should.Equal, "BindingInputModel")
-//}
+func (this *ModelBinderFixture) TestModelBinding() {
+	binder := New(func(input *BindingInputModel) Renderer {
+		return &ControllerResponse{Body: input.Content}
+	})
+
+	binder.ServeHTTP(this.response, this.request)
+
+	this.So(this.response.Code, should.Equal, 200)
+	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: BindingInputModel")
+}

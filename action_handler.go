@@ -11,7 +11,7 @@ type ActionHandler struct {
 	input      CreateModel
 }
 
-func New(controllerAction interface{}) *ActionHandler {
+func New(controllerAction interface{}) http.Handler {
 	inputType := parseModelType(controllerAction).Elem()
 	var factory CreateModel = func() interface{} { return reflect.New(inputType).Interface() }
 	return withFactory(controllerAction, factory)
@@ -20,11 +20,12 @@ func New(controllerAction interface{}) *ActionHandler {
 func withFactory(controllerAction interface{}, input CreateModel) *ActionHandler {
 	callbackType := reflect.ValueOf(controllerAction)
 	var callback ControllerAction = func(m interface{}) Renderer {
-		results := callbackType.Call([]reflect.Value{reflect.ValueOf(m)})[0]
-		if results.IsNil() {
+		results := callbackType.Call([]reflect.Value{reflect.ValueOf(m)})
+		result := results[0]
+		if result.IsNil() {
 			return nil
 		}
-		return results.Elem().Interface().(Renderer)
+		return result.Elem().Interface().(Renderer)
 	}
 	return &ActionHandler{controller: callback, input: input}
 }
@@ -37,8 +38,8 @@ func parseModelType(action interface{}) reflect.Type {
 		panic("The callback provided must have exactly one argument.")
 	} else if actionType.In(0).Kind() != reflect.Ptr {
 		panic("The first argument to the controller callback must be a pointer type.")
-		//	} else if true { // TODO
-		//		panic("The Return type must implement Renderer")
+	} else if actionType.NumOut() != 1 || !actionType.Out(0).Implements(reflect.TypeOf((*Renderer)(nil)).Elem()) {
+		panic("The return type must implement Renderer")
 	} else {
 		return actionType.In(0)
 	}
