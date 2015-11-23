@@ -7,7 +7,7 @@ import (
 )
 
 type ActionHandler struct {
-	controller ControllerAction
+	controller MonadicAction
 	input      CreateModel
 }
 
@@ -17,14 +17,14 @@ func New(controllerAction interface{}) http.Handler {
 		return simple(controllerAction.(func() Renderer))
 	}
 
-	modelElement := modelType.Elem()
+	modelElement := modelType.Elem() // do not inline into factory callback method
 	var factory CreateModel = func() interface{} { return reflect.New(modelElement).Interface() }
 	return withFactory(controllerAction, factory)
 }
 
 func withFactory(controllerAction interface{}, input CreateModel) http.Handler {
 	callbackType := reflect.ValueOf(controllerAction)
-	var callback ControllerAction = func(m interface{}) Renderer {
+	var callback MonadicAction = func(m interface{}) Renderer {
 		results := callbackType.Call([]reflect.Value{reflect.ValueOf(m)})
 		result := results[0]
 		if result.IsNil() {
@@ -35,13 +35,12 @@ func withFactory(controllerAction interface{}, input CreateModel) http.Handler {
 	return &ActionHandler{controller: callback, input: input}
 }
 
-func simple(controllerAction func() Renderer) http.Handler {
+func simple(controllerAction NiladicAction) http.Handler {
 	return &ActionHandler{
 		controller: func(interface{}) Renderer { return controllerAction() },
-		input: func() interface{} { return nil },
+		input:      func() interface{} { return nil },
 	}
 }
-
 
 func parseModelType(action interface{}) reflect.Type {
 	actionType := reflect.TypeOf(action)
@@ -53,7 +52,7 @@ func parseModelType(action interface{}) reflect.Type {
 		panic("The first argument to the controller callback must be a pointer type.")
 	} else if actionType.NumOut() != 1 || !actionType.Out(0).Implements(reflect.TypeOf((*Renderer)(nil)).Elem()) {
 		panic("The return type must implement Renderer")
-	} else if argumentCount > 0{
+	} else if argumentCount > 0 {
 		return actionType.In(0)
 	} else {
 		return nil

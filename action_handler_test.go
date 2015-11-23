@@ -89,11 +89,11 @@ func (this *ModelBinderFixture) TestNilResponseFromApplication__HTTP200() {
 ////////////////////////////////////////////////////////////
 
 func (this *ModelBinderFixture) TestModelParsingFromCallback() {
-	this.assertPanic(0)                                   // not a method
-	this.assertPanic(func() {})                           // no input
-	this.assertPanic(func(int) {})                        // not a pointer
-	this.assertPanic(func(*int, *int) {})                 // not a pointer
-	this.So(func() { parseModelType(func(*BlankBasicInputModel) {} ) }, should.Panic) // doesn't return a Renderer
+	this.assertPanic(0)                                                              // not a method
+	this.assertPanic(func() {})                                                      // no input
+	this.assertPanic(func(int) {})                                                   // not a pointer
+	this.assertPanic(func(*int, *int) {})                                            // not a pointer
+	this.So(func() { parseModelType(func(*BlankBasicInputModel) {}) }, should.Panic) // doesn't return a Renderer
 	this.So(func() { parseModelType(func(*BlankBasicInputModel) Renderer { return nil }) }, should.NotPanic)
 }
 func (this *ModelBinderFixture) assertPanic(callback interface{}) {

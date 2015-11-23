@@ -3,8 +3,9 @@ package binding
 import "net/http"
 
 type (
-	CreateModel      func() interface{}
-	ControllerAction func(interface{}) Renderer
+	CreateModel   func() interface{}
+	MonadicAction func(interface{}) Renderer
+	NiladicAction func() Renderer
 
 	Binder interface {
 		Bind(*http.Request) error
