@@ -17,6 +17,32 @@ func ComplexValidationError(message string, fields ...string) error
 func SimpleValidationError(message, field string) error
 ```
 
+#### type ActionHandler
+
+```go
+type ActionHandler struct {
+}
+```
+
+
+#### func  Typed
+
+```go
+func Typed(controllerAction interface{}) *ActionHandler
+```
+
+#### func  TypedFactory
+
+```go
+func TypedFactory(controllerAction interface{}, input InputFactory) *ActionHandler
+```
+
+#### func (*ActionHandler) ServeHTTP
+
+```go
+func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http.Request)
+```
+
 #### type Binder
 
 ```go
@@ -29,14 +55,7 @@ type Binder interface {
 #### type ControllerAction
 
 ```go
-type ControllerAction func(http.ResponseWriter, *http.Request, interface{})
-```
-
-
-#### type DomainAction
-
-```go
-type DomainAction func(interface{}) http.Handler
+type ControllerAction func(interface{}) Renderer
 ```
 
 
@@ -47,55 +66,11 @@ type InputFactory func() interface{}
 ```
 
 
-#### type ModelBinder
+#### type Renderer
 
 ```go
-type ModelBinder struct {
-}
-```
-
-
-#### func  Domain
-
-```go
-func Domain(callback DomainAction, input InputFactory) *ModelBinder
-```
-
-#### func  Generic
-
-```go
-func Generic(callback ControllerAction, message interface{}) *ModelBinder
-```
-
-#### func  GenericFactory
-
-```go
-func GenericFactory(callback ControllerAction, input InputFactory) *ModelBinder
-```
-
-#### func  Typed
-
-```go
-func Typed(controllerAction interface{}) *ModelBinder
-```
-
-#### func  TypedFactory
-
-```go
-func TypedFactory(controllerAction interface{}, input InputFactory) *ModelBinder
-```
-
-#### func (*ModelBinder) ServeHTTP
-
-```go
-func (this *ModelBinder) ServeHTTP(response http.ResponseWriter, request *http.Request)
-```
-
-#### type Translator
-
-```go
-type Translator interface {
-	Translate() interface{}
+type Renderer interface {
+	Render(http.ResponseWriter, *http.Request)
 }
 ```
 
