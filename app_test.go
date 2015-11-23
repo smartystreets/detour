@@ -27,6 +27,9 @@ func (this *Controller) HandleValidatingFailsInputModel(model *ValidatingFailsIn
 func (this *Controller) HandleNilResponseInputModel(model *NilResponseInputModel) Renderer {
 	return nil
 }
+func (this *Controller) HandleEmptyInputModel() Renderer {
+	return nil
+}
 
 ///////////////////////////////////////////////////////////////
 

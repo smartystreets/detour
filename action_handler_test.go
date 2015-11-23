@@ -29,6 +29,12 @@ func (this *ModelBinderFixture) TestBasicInputModelProvidedToApplication__HTTP20
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: BasicInputModel")
 }
 
+func (this *ModelBinderFixture) TestNoInputModelProvidedToApplication__HTTP200() {
+	binder := New(this.controller.HandleEmptyInputModel)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, http.StatusOK)
+}
+
 func (this *ModelBinderFixture) TestBindsModelForApplication__HTTP200() {
 	binder := New(this.controller.HandleBindingInputModel)
 	binder.ServeHTTP(this.response, this.request)
