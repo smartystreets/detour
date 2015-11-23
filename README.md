@@ -21,31 +21,29 @@ func SimpleValidationError(message, field string) error
 
 ```go
 type Binder interface {
-	Bind(request *http.Request) error
+	Bind(*http.Request) error
 }
 ```
 
 
-#### type DomainHandler
+#### type ControllerAction
 
 ```go
-type DomainHandler func(interface{}) http.Handler
+type ControllerAction func(http.ResponseWriter, *http.Request, interface{})
 ```
 
 
-#### type Handler
+#### type DomainAction
 
 ```go
-type Handler interface {
-	Handle(response http.ResponseWriter, request *http.Request, message interface{})
-}
+type DomainAction func(interface{}) http.Handler
 ```
 
 
-#### type InputModelFactory
+#### type InputFactory
 
 ```go
-type InputModelFactory func() interface{}
+type InputFactory func() interface{}
 ```
 
 
@@ -57,16 +55,34 @@ type ModelBinder struct {
 ```
 
 
-#### func  NewDomainModelBinder
+#### func  Domain
 
 ```go
-func NewDomainModelBinder(input InputModelFactory, domain DomainHandler) *ModelBinder
+func Domain(callback DomainAction, input InputFactory) *ModelBinder
 ```
 
-#### func  NewModelBinderHandler
+#### func  Generic
 
 ```go
-func NewModelBinderHandler(input InputModelFactory, handler Handler) *ModelBinder
+func Generic(callback ControllerAction, message interface{}) *ModelBinder
+```
+
+#### func  GenericFactory
+
+```go
+func GenericFactory(callback ControllerAction, input InputFactory) *ModelBinder
+```
+
+#### func  Typed
+
+```go
+func Typed(controllerAction interface{}) *ModelBinder
+```
+
+#### func  TypedFactory
+
+```go
+func TypedFactory(controllerAction interface{}, input InputFactory) *ModelBinder
 ```
 
 #### func (*ModelBinder) ServeHTTP
