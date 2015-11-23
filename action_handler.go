@@ -8,40 +8,39 @@ import (
 
 type ActionHandler struct {
 	controller ControllerAction
-	input      InputFactory
+	input      CreateModel
 }
 
-func Typed(controllerAction interface{}) *ActionHandler {
-	inputType := parseInputModelType(controllerAction).Elem()
-	var factory InputFactory = func() interface{} { return reflect.New(inputType).Interface() }
-	return TypedFactory(controllerAction, factory)
+func New(controllerAction interface{}) *ActionHandler {
+	inputType := parseModelType(controllerAction).Elem()
+	var factory CreateModel = func() interface{} { return reflect.New(inputType).Interface() }
+	return withFactory(controllerAction, factory)
 }
 
-func TypedFactory(controllerAction interface{}, input InputFactory) *ActionHandler {
+func withFactory(controllerAction interface{}, input CreateModel) *ActionHandler {
 	callbackType := reflect.ValueOf(controllerAction)
 	var callback ControllerAction = func(m interface{}) Renderer {
-		results := callbackType.Call([]reflect.Value{reflect.ValueOf(m)})
-		result := results[0]
-		if result.IsNil() {
+		results := callbackType.Call([]reflect.Value{reflect.ValueOf(m)})[0]
+		if results.IsNil() {
 			return nil
 		}
-		return result.Elem().Interface().(Renderer)
+		return results.Elem().Interface().(Renderer)
 	}
 	return &ActionHandler{controller: callback, input: input}
 }
 
-func parseInputModelType(function interface{}) reflect.Type {
-	typed := reflect.TypeOf(function)
-	if typed.Kind() != reflect.Func {
-		panic("The controller callback provided is not a function.")
-	} else if argumentCount := typed.NumIn(); argumentCount != 1 {
-		panic("The controller callback provided must have exactly one argument.")
-	} else if typed.In(0).Kind() != reflect.Ptr {
+func parseModelType(action interface{}) reflect.Type {
+	actionType := reflect.TypeOf(action)
+	if actionType.Kind() != reflect.Func {
+		panic("The action provided is not a function.")
+	} else if argumentCount := actionType.NumIn(); argumentCount != 1 {
+		panic("The callback provided must have exactly one argument.")
+	} else if actionType.In(0).Kind() != reflect.Ptr {
 		panic("The first argument to the controller callback must be a pointer type.")
-//	} else if true { // TODO
-//		panic("The Return type must implement Renderer")
+		//	} else if true { // TODO
+		//		panic("The Return type must implement Renderer")
 	} else {
-		return typed.In(0)
+		return actionType.In(0)
 	}
 }
 

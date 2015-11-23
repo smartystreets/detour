@@ -3,7 +3,7 @@ package binding
 import "net/http"
 
 type (
-	InputFactory     func() interface{}
+	CreateModel      func() interface{}
 	ControllerAction func(interface{}) Renderer
 
 	Binder interface {

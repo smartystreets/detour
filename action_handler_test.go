@@ -23,21 +23,21 @@ func (this *ModelBinderFixture) Setup() {
 }
 
 func (this *ModelBinderFixture) TestBasicInputModelProvidedToApplication__HTTP200() {
-	binder := TypedFactory(this.controller.HandleBasicInputModel, NewBlankBasicInputModel)
+	binder := withFactory(this.controller.HandleBasicInputModel, NewBlankBasicInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: BasicInputModel")
 }
 
 func (this *ModelBinderFixture) TestBindsModelForApplication__HTTP200() {
-	binder := Typed(this.controller.HandleBindingInputModel)
+	binder := New(this.controller.HandleBindingInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: BindingInputModel")
 }
 
 func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400() {
-	binder := Typed(this.controller.HandleBindingFailsInputModel)
+	binder := New(this.controller.HandleBindingFailsInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 400)
 	this.So(this.response.Header().Get("Content-Type"), should.Equal, "application/json")
@@ -45,14 +45,14 @@ func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400() {
 }
 
 func (this *ModelBinderFixture) TestValidatesModelForApplication__HTTP200() {
-	binder := Typed(this.controller.HandleValidatingInputModel)
+	binder := New(this.controller.HandleValidatingInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: ValidatingInputModel")
 }
 
 func (this *ModelBinderFixture) TestValidatesModelAndHandlesError__HTTP422() {
-	binder := Typed(this.controller.HandleValidatingFailsInputModel)
+	binder := New(this.controller.HandleValidatingFailsInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 422)
 	this.So(this.response.Header().Get("Content-Type"), should.Equal, "application/json")
@@ -60,14 +60,14 @@ func (this *ModelBinderFixture) TestValidatesModelAndHandlesError__HTTP422() {
 }
 
 func (this *ModelBinderFixture) TestValidatesModelEmptyValidationErrors__HTTP200() {
-	binder := Typed(this.controller.HandleValidatingEmptyErrors)
+	binder := New(this.controller.HandleValidatingEmptyErrors)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 200)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: ValidatingEmptyErrorsInputModel")
 }
 
 func (this *ModelBinderFixture) TestNilResponseFromApplication__HTTP200() {
-	binder := Typed(this.controller.HandleNilResponseInputModel)
+	binder := New(this.controller.HandleNilResponseInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.BeBlank)
