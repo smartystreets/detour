@@ -3,124 +3,170 @@ package binding
 import (
 	"errors"
 	"net/http"
-	"net/http/httptest"
-
-	"bytes"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
+	"github.com/smartystreets/httptest2"
 )
 
 type ResultFixture struct {
 	*gunit.Fixture
 
-	response *httptest.ResponseRecorder
+	response *httptest2.ResponseRecorder
 }
 
 func (this *ResultFixture) Setup() {
-	this.response = httptest.NewRecorder()
+	this.response = httptest2.NewRecorder()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-func (this *ResultFixture) TestUnmodifiedResult_HTTP200_BlankBody_NoHeaders() {
-	this.render(DefaultResult())
-
-	this.assertStatusCode(200)
-	this.assertNoHeaders()
-	this.assertContent("")
-}
-
 func (this *ResultFixture) TestStatusCodeResult() {
-	this.render(StatusCodeResult(201))
+	result := &StatusCodeResult{
+		StatusCode: 456,
+		Message:    "Status 456",
+	}
 
-	this.assertStatusCode(201)
-	this.assertNoHeaders()
-	this.assertContent("")
-}
+	this.render(result)
 
-func (this *ResultFixture) TestInvalidResult() {
-	this.render(InvalidResult("input-field", "It's just all wrong."))
-
-	this.assertStatusCode(422)
-	this.assertHasHeader(contentTypeHeader, jsonContentType)
-	this.assertContent(`[{"fields":["input-field"],"message":"It's just all wrong."}]`)
-}
-
-func (this *ResultFixture) TestNotFoundResult() {
-	this.render(NotFoundResult())
-
-	this.assertStatusCode(http.StatusNotFound)
-	this.assertHasHeader(contentTypeHeader, plainTextContentType)
-	this.assertContent(http.StatusText(http.StatusNotFound))
-}
-
-func (this *ResultFixture) TestStringContentResult() {
-	this.render(StringContentResult("text/html", "<html></html>"))
-
-	this.assertStatusCode(200)
-	this.assertHasHeader(contentTypeHeader, "text/html")
-	this.assertContent("<html></html>")
+	this.assertStatusCode(456)
+	this.assertContent("Status 456")
+	this.assertHasHeader("Content-Type", "text/plain")
 }
 
 func (this *ResultFixture) TestContentResult() {
-	this.render(ContentResult("text/html", []byte("<html></html>")))
+	result := &ContentResult{
+		StatusCode: 456,
+		Content:    "Hello, World!",
+	}
 
-	this.assertStatusCode(200)
-	this.assertHasHeader(contentTypeHeader, "text/html")
-	this.assertContent("<html></html>")
+	this.render(result)
+
+	this.assertStatusCode(456)
+	this.assertContent("Hello, World!")
+	this.assertHasHeader("Content-Type", "text/plain")
+}
+func (this *ResultFixture) TestContentResult_WithCustomContentType() {
+	result := &ContentResult{
+		StatusCode:  456,
+		ContentType: "application/custom-text",
+		Content:     "Hello, World!",
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(456)
+	this.assertContent("Hello, World!")
+	this.assertHasHeader("Content-Type", "application/custom-text")
 }
 
-func (this *ResultFixture) TestHeaderResult() {
-	this.render(HeaderResult("Key", "Value"))
+func (this *ResultFixture) TestBinaryResult() {
+	result := &BinaryResult{
+		StatusCode: 456,
+		Content:    []byte("Hello, World!"),
+	}
 
-	this.assertStatusCode(200)
-	this.assertHasHeader("Key", "Value")
-	this.assertContent("")
+	this.render(result)
+
+	this.assertStatusCode(456)
+	this.assertContent("Hello, World!")
+	this.assertHasHeader("Content-Type", "application/octet-stream")
 }
+func (this *ResultFixture) TestBinaryResult_WithCustomContentType() {
+	result := &BinaryResult{
+		StatusCode:  456,
+		ContentType: "application/custom-binary",
+		Content:     []byte("Hello, World!"),
+	}
 
-func (this *ResultFixture) TestCookieResult() {
-	this.render(CookieResult(&http.Cookie{
-		Domain: "domain.com",
-		Name:   "cookie-name",
-		Path:   "/path",
-	}))
+	this.render(result)
 
-	this.assertStatusCode(200)
-	this.assertHasHeader("Set-Cookie", "cookie-name=; Path=/path; Domain=domain.com")
-	this.assertContent("")
+	this.assertStatusCode(456)
+	this.assertContent("Hello, World!")
+	this.assertHasHeader("Content-Type", "application/custom-binary")
 }
 
 func (this *ResultFixture) TestJSONResult() {
-	this.render(JSONResult(struct {
-		Message string `json:"message"`
-	}{Message: "Hello, World!"}))
+	result := &JSONResult{
+		StatusCode: 123,
+		Content:    map[string]string{"key": "value"},
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(123)
+	this.assertContent(`{"key":"value"}`)
+	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
+}
+func (this *ResultFixture) TestJSONResult_WithCustomContentType() {
+	result := &JSONResult{
+		StatusCode:  123,
+		ContentType: "application/custom-json",
+		Content:     map[string]string{"key": "value"},
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(123)
+	this.assertContent(`{"key":"value"}`)
+	this.assertHasHeader("Content-Type", "application/custom-json")
+}
+func (this *ResultFixture) TestJSONResult_SerializationFailure_HTTP500WithErrorMessage() {
+	result := &JSONResult{
+		StatusCode: 123,
+		Content:    new(BadJSON),
+	}
+	this.render(result)
+
+	this.assertStatusCode(500)
+	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
+	this.assertContent(`[{"fields":["HTTP Response"],"message":"Marshal failure"}]`)
+}
+
+func (this *ResultFixture) TestValidationResult() {
+	result := &ValidationResult{
+		Failure1: SimpleValidationError("message1", "field1"),
+		Failure2: SimpleValidationError("message2", "field2"),
+		Failure3: nil,
+		Failure4: ComplexValidationError("message3", "field3", "field4"),
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(422)
+	this.assertContent(`[{"fields":["field1"],"message":"message1"},{"fields":["field2"],"message":"message2"},{"fields":["field3","field4"],"message":"message3"}]`)
+	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
+}
+func (this *ResultFixture) TestValidationResult_SerializationFailure_HTTP500WithErrorMessage() {
+	result := &ValidationResult{
+		Failure1: new(BadJSON),
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(500)
+	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
+	this.assertContent(`[{"fields":["HTTP Response"],"message":"Marshal failure"}]`)
+}
+
+func (this *ResultFixture) TestCookieResult() {
+	result := &CookieResult{
+		Cookie1: &http.Cookie{Name: "a", Value: "1"},
+		Cookie2: &http.Cookie{Name: "b", Value: "2"},
+		Cookie3: nil,
+		Cookie4: &http.Cookie{Name: "d", Value: "4"},
+	}
+
+	this.render(result)
 
 	this.assertStatusCode(200)
-	this.assertHasHeader(contentTypeHeader, jsonContentType)
-	this.assertContent(`{"message":"Hello, World!"}`)
-}
-
-func (this *ResultFixture) TestJSONSerializationError_HTTP500() {
-	response := NewErrorProneResponseWriter()
-	JSONResult(struct{}{}).Render(response, nil)
-	this.So(response.StatusCode, should.Equal, 500)
-	this.So(response.buffer.String(), should.Equal, "Response serialization failed")
-	this.So(response.headers.Get("Content-Type"), should.Equal, plainTextContentType)
-}
-
-func (this *ResultFixture) TestErrorsPreventJSONFromBeingSerializedAndReturned() {
-	this.render(DefaultResult().
-		SetJSONContent(struct{ Message string }{"Not a chance"}).
-		AppendInvalidResult("blah", "blah"))
-	this.assertStatusCode(422)
-	this.assertHasHeader(contentTypeHeader, jsonContentType)
-	this.assertContent(`[{"fields":["blah"],"message":"blah"}]`)
+	this.So(this.response.Header()["Set-Cookie"], should.Resemble, []string{"a=1", "b=2", "d=4"})
+	this.assertContent("")
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-func (this *ResultFixture) render(result *Result) {
+func (this *ResultFixture) render(result Renderer) {
 	result.Render(this.response, nil)
 }
 func (this *ResultFixture) assertStatusCode(expected int) {
@@ -134,39 +180,13 @@ func (this *ResultFixture) assertNoHeaders() {
 }
 func (this *ResultFixture) assertHasHeader(key, value string) {
 	this.So(this.response.HeaderMap, should.ContainKey, key)
-	this.So(this.response.Header().Get(key), should.Equal, value)
+	this.So(this.response.HeaderMap[key], should.Resemble, []string{value})
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-type ErrorProneResponseRecorder struct {
-	StatusCode int
-	calls      int
-	buffer     *bytes.Buffer
-	headers    http.Header
-}
+type BadJSON struct{}
 
-func NewErrorProneResponseWriter() *ErrorProneResponseRecorder {
-	return &ErrorProneResponseRecorder{
-		buffer:  new(bytes.Buffer),
-		headers: make(http.Header),
-	}
-}
+func (this *BadJSON) Error() string                { return "Implement the error interface." }
+func (this *BadJSON) MarshalJSON() ([]byte, error) { return nil, errors.New("GOPHERS!") }
 
-func (this *ErrorProneResponseRecorder) Write(p []byte) (int, error) {
-	this.calls++
-	if this.calls == 1 {
-		return 0, errors.New("GOPHERS!")
-	}
-	return this.buffer.Write(p)
-}
-
-func (this *ErrorProneResponseRecorder) WriteHeader(code int) {
-	this.StatusCode = code
-}
-
-func (this *ErrorProneResponseRecorder) Header() http.Header {
-	return this.headers
-}
-
-///////////////////////////////////////////////////////////////////////////////

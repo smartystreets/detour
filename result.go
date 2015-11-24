@@ -5,145 +5,124 @@ import (
 	"net/http"
 )
 
-type Result struct {
-	StatusCode int
-	Content    []byte
-	Invalid    ValidationErrors
-	JSON       interface{}
-	Headers    map[string]string
-	Cookies    []*http.Cookie
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-func DefaultResult() *Result {
-	return &Result{}
-}
-func StatusCodeResult(code int) *Result {
-	return DefaultResult().SetStatusCode(code)
-}
-func InvalidResult(field, message string) *Result {
-	return DefaultResult().AppendInvalidResult(field, message)
-}
-func NotFoundResult() *Result {
-	return DefaultResult().
-		SetStatusCode(http.StatusNotFound).
-		SetStringContent(plainTextContentType, http.StatusText(http.StatusNotFound))
-}
-func ContentResult(contentType string, content []byte) *Result {
-	return DefaultResult().SetContent(contentType, content)
-}
-func StringContentResult(contentType, content string) *Result {
-	return DefaultResult().SetStringContent(contentType, content)
-}
-func HeaderResult(key, value string) *Result {
-	return DefaultResult().SetHeader(key, value)
-}
-func CookieResult(cookie *http.Cookie) *Result {
-	return DefaultResult().SetCookie(cookie)
-}
-func JSONResult(content interface{}) *Result {
-	return DefaultResult().SetJSONContent(content)
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-func (this *Result) SetHeader(key, value string) *Result {
-	if this.Headers == nil {
-		this.Headers = make(map[string]string)
+type (
+	StatusCodeResult struct {
+		StatusCode int
+		Message    string
 	}
-	this.Headers[key] = value
-	return this
-}
-func (this *Result) SetStringContent(contentType, content string) *Result {
-	return this.SetContent(contentType, []byte(content))
-}
-func (this *Result) SetContent(contentType string, content []byte) *Result {
-	this.Content = content
-	return this.SetContentType(contentType)
-}
-func (this *Result) SetJSONContent(content interface{}) *Result {
-	this.JSON = content
-	return this
-}
-func (this *Result) SetStatusCode(code int) *Result {
-	this.StatusCode = code
-	return this
-}
-func (this *Result) SetContentType(value string) *Result {
-	return this.SetHeader(contentTypeHeader, value)
-}
-func (this *Result) SetCookie(cookie *http.Cookie) *Result {
-	this.Cookies = append(this.Cookies, cookie)
-	return this
-}
-func (this *Result) AppendInvalidResult(field, message string) *Result {
-	this.Invalid = this.Invalid.Append(SimpleValidationError(message, field))
-	return this.SetStatusCode(422)
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-func (this *Result) Render(response http.ResponseWriter, request *http.Request) {
-	this.writeStatusCode(response)
-	headers := response.Header()
-	this.writeHeaders(headers, response)
-	this.writeBody(headers, response)
-}
-func (this *Result) writeStatusCode(response http.ResponseWriter) {
-	if this.StatusCode == 0 {
-		this.StatusCode = http.StatusOK
+	ContentResult struct {
+		StatusCode  int
+		ContentType string
+		Content     string
 	}
-	response.WriteHeader(this.StatusCode)
-}
-func (this *Result) writeHeaders(headers http.Header, response http.ResponseWriter) {
-	for key, value := range this.Headers {
-		headers.Set(key, value)
+	BinaryResult struct {
+		StatusCode  int
+		ContentType string
+		Content     []byte
 	}
+	JSONResult struct {
+		StatusCode  int
+		ContentType string
+		Content     interface{}
+	}
+	ValidationResult struct {
+		Failure1 error
+		Failure2 error
+		Failure3 error
+		Failure4 error
+	}
+	CookieResult struct {
+		Cookie1 *http.Cookie
+		Cookie2 *http.Cookie
+		Cookie3 *http.Cookie
+		Cookie4 *http.Cookie
+	}
+)
 
-	for _, cookie := range this.Cookies {
-		http.SetCookie(response, cookie)
+func (this *StatusCodeResult) Render(response http.ResponseWriter, request *http.Request) {
+	writeContentTypeAndStatusCode(response, this.StatusCode, plaintextContentType)
+	response.Write([]byte(this.Message))
+}
+
+func (this *ContentResult) Render(response http.ResponseWriter, request *http.Request) {
+	contentType := selectContentType(this.ContentType, plaintextContentType)
+	writeContentTypeAndStatusCode(response, this.StatusCode, contentType)
+	response.Write([]byte(this.Content))
+}
+
+func (this *BinaryResult) Render(response http.ResponseWriter, request *http.Request) {
+	contentType := selectContentType(this.ContentType, octetStreamContentType)
+	writeContentTypeAndStatusCode(response, this.StatusCode, contentType)
+	response.Write(this.Content)
+}
+
+func (this *JSONResult) Render(response http.ResponseWriter, request *http.Request) {
+	contentType := selectContentType(this.ContentType, jsonContentType)
+	writeContentType(response, contentType)
+	serializeAndWrite(response, this.StatusCode, this.Content)
+}
+
+func (this *ValidationResult) Render(response http.ResponseWriter, request *http.Request) {
+	writeContentType(response, jsonContentType)
+
+	var failures ValidationErrors
+	failures = failures.Append(this.Failure1)
+	failures = failures.Append(this.Failure2)
+	failures = failures.Append(this.Failure3)
+	failures = failures.Append(this.Failure4)
+
+	serializeAndWrite(response, 422, failures)
+}
+
+func (this *CookieResult) Render(response http.ResponseWriter, request *http.Request) {
+	for _, cookie := range []*http.Cookie{this.Cookie1, this.Cookie2, this.Cookie3, this.Cookie4} {
+		if cookie != nil {
+			http.SetCookie(response, cookie)
+		}
 	}
 }
-func (this *Result) writeBody(headers http.Header, response http.ResponseWriter) {
-	if err := this.tryWriteBody(headers, response); err != nil {
-		this.writeFailure(headers, response)
+
+func selectContentType(values ...string) string {
+	for _, value := range values {
+		if len(value) > 0 {
+			return value
+		}
+	}
+
+	return ""
+}
+
+func writeContentTypeAndStatusCode(response http.ResponseWriter, statusCode int, contentType string) {
+	writeContentType(response, contentType)
+	response.WriteHeader(statusCode)
+}
+func writeContentType(response http.ResponseWriter, contentType string) {
+	if len(contentType) > 0 {
+		response.Header().Set(contentTypeHeader, contentType) // doesn't get written unless status code is written last!
 	}
 }
-func (this *Result) tryWriteBody(headers http.Header, response http.ResponseWriter) error {
-	if len(this.Invalid) > 0 {
-		return this.serializeJSON(headers, response, this.Invalid)
-	} else if this.JSON != nil {
-		return this.serializeJSON(headers, response, this.JSON)
-	} else if len(this.Content) > 0 {
-		return this.writePlainText(headers, response)
+
+func serializeAndWrite(response http.ResponseWriter, statusCode int, content interface{}) {
+	if content, err := json.Marshal(content); err == nil {
+		writeContent(response, statusCode, content)
 	} else {
-		return nil
+		writeError(response)
 	}
 }
-func (this *Result) serializeJSON(headers http.Header, response http.ResponseWriter, content interface{}) error {
-	headers.Set(contentTypeHeader, jsonContentType)
-	return json.NewEncoder(response).Encode(content)
+func writeContent(response http.ResponseWriter, statusCode int, content []byte) {
+	response.WriteHeader(statusCode)
+	response.Write(content)
 }
-func (this *Result) writePlainText(headers http.Header, response http.ResponseWriter) error {
-	if len(headers.Get(contentTypeHeader)) == 0 {
-		headers.Set(contentTypeHeader, plainTextContentType)
-	}
-	_, err := response.Write(this.Content)
-	return err
-}
-func (this *Result) writeFailure(headers http.Header, response http.ResponseWriter) {
-	// TODO: log the failure
-	headers.Del(contentTypeHeader)
+func writeError(response http.ResponseWriter) {
 	response.WriteHeader(http.StatusInternalServerError)
-	this.Content = []byte("Response serialization failed")
-	this.writePlainText(headers, response)
+	errContent := make(ValidationErrors, 0).Append(SimpleValidationError("Marshal failure", "HTTP Response"))
+	content, _ := json.Marshal(errContent)
+	response.Write(content)
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 const (
-	contentTypeHeader    = "Content-Type"
-	plainTextContentType = "text/plain; charset=utf-8"
-	jsonContentType      = "application/json; charset=utf-8"
+	contentTypeHeader      = "Content-Type"
+	jsonContentType        = "application/json; charset=utf-8"
+	octetStreamContentType = "application/octet-stream"
+	plaintextContentType   = "text/plain"
 )
