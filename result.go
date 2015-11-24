@@ -40,29 +40,32 @@ type (
 )
 
 func (this *StatusCodeResult) Render(response http.ResponseWriter, request *http.Request) {
-	writeStatusAndContentType(response, this.StatusCode, "text/plain")
+	writeStatusAndContentType(response, this.StatusCode, plaintextContentType)
 	if len(this.Message) > 0 {
 		response.Write([]byte(this.Message))
 	}
 }
 
 func (this *ContentResult) Render(response http.ResponseWriter, request *http.Request) {
-	writeStatusAndContentType(response, this.StatusCode, selectContentType(this.ContentType, "text/plain"))
+	contentType := selectContentType(this.ContentType, plaintextContentType)
+	writeStatusAndContentType(response, this.StatusCode, contentType)
 	response.Write([]byte(this.Content))
 }
 
 func (this *BinaryResult) Render(response http.ResponseWriter, request *http.Request) {
-	writeStatusAndContentType(response, this.StatusCode, selectContentType(this.ContentType, "application/octet-stream"))
+	contentType := selectContentType(this.ContentType, plaintextContentType)
+	writeStatusAndContentType(response, this.StatusCode, contentType)
 	response.Write(this.Content)
 }
 
 func (this *JSONResult) Render(response http.ResponseWriter, request *http.Request) {
-	writeStatusAndContentType(response, this.StatusCode, selectContentType(this.ContentType, "application/json; charset=utf-8"))
+	contentType := selectContentType(this.ContentType, jsonContentType)
+	writeStatusAndContentType(response, this.StatusCode, contentType)
 	json.NewEncoder(response).Encode(this.Content)
 }
 
 func (this *ValidationResult) Render(response http.ResponseWriter, request *http.Request) {
-	writeStatusAndContentType(response, 422, "application/json; charset=utf-8")
+	writeStatusAndContentType(response, 422, jsonContentType)
 
 	var failures ValidationErrors
 	failures = failures.Append(this.Failure1)
@@ -92,7 +95,14 @@ func selectContentType(values ...string) string {
 
 func writeStatusAndContentType(response http.ResponseWriter, statusCode int, contentType string) {
 	if len(contentType) > 0 {
-		response.Header().Set("Content-Type", contentType) // doesn't get written unless status code is written last!
+		response.Header().Set(contentTypeHeader, contentType) // doesn't get written unless status code is written last!
 	}
 	response.WriteHeader(statusCode)
 }
+
+const (
+	contentTypeHeader      = "Content-Type"
+	jsonContentType        = "application/json; charset=utf-8"
+	octetStreamContentType = "application/octet-stream"
+	plaintextContentType   = "text/plain"
+)

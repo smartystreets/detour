@@ -2,19 +2,19 @@ package binding
 
 import (
 	"net/http"
-	"net/http/httptest"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
+	"github.com/smartystreets/httptest2"
 )
 
 type ResultFixture struct {
 	*gunit.Fixture
-	response *httptest.ResponseRecorder
+	response *httptest2.ResponseRecorder
 }
 
 func (this *ResultFixture) Setup() {
-	this.response = httptest.NewRecorder()
+	this.response = httptest2.NewRecorder()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -156,5 +156,5 @@ func (this *ResultFixture) assertNoHeaders() {
 }
 func (this *ResultFixture) assertHasHeader(key, value string) {
 	this.So(this.response.HeaderMap, should.ContainKey, key)
-	this.So(this.response.Header().Get(key), should.Equal, value)
+	this.So(this.response.HeaderMap[key], should.Resemble, []string{value})
 }
