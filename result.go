@@ -41,9 +41,7 @@ type (
 
 func (this *StatusCodeResult) Render(response http.ResponseWriter, request *http.Request) {
 	writeContentTypeAndStatusCode(response, this.StatusCode, plaintextContentType)
-	if len(this.Message) > 0 {
-		response.Write([]byte(this.Message))
-	}
+	response.Write([]byte(this.Message))
 }
 
 func (this *ContentResult) Render(response http.ResponseWriter, request *http.Request) {
