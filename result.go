@@ -134,6 +134,7 @@ func (this *Result) writePlainText(headers http.Header, response http.ResponseWr
 	return err
 }
 func (this *Result) writeFailure(headers http.Header, response http.ResponseWriter) {
+	// TODO: log the failure
 	headers.Del(contentTypeHeader)
 	response.WriteHeader(http.StatusInternalServerError)
 	this.Content = []byte("Response serialization failed")
