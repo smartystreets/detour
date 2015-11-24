@@ -17,11 +17,7 @@ type Result struct {
 ///////////////////////////////////////////////////////////////////////////////
 
 func DefaultResult() *Result {
-	return &Result{
-		Invalid: make(ValidationErrors, 0),
-		Headers: make(map[string]string),
-		Cookies: make([]*http.Cookie, 0),
-	}
+	return &Result{}
 }
 func StatusCodeResult(code int) *Result {
 	return DefaultResult().SetStatusCode(code)
@@ -53,6 +49,9 @@ func JSONResult(content interface{}) *Result {
 ///////////////////////////////////////////////////////////////////////////////
 
 func (this *Result) SetHeader(key, value string) *Result {
+	if this.Headers == nil {
+		this.Headers = make(map[string]string)
+	}
 	this.Headers[key] = value
 	return this
 }
