@@ -123,11 +123,6 @@ func (this *ResultFixture) TestJSONResult_SerializationFailure_HTTP500WithErrorM
 	this.assertContent(`[{"fields":["HTTP Response"],"message":"Marshal failure"}]`)
 }
 
-type BadJSON struct{}
-
-func (this *BadJSON) Error() string                { return "Implement the error interface." }
-func (this *BadJSON) MarshalJSON() ([]byte, error) { return nil, errors.New("GOPHERS!") }
-
 func (this *ResultFixture) TestValidationResult() {
 	result := &ValidationResult{
 		Failure1: SimpleValidationError("message1", "field1"),
@@ -142,7 +137,6 @@ func (this *ResultFixture) TestValidationResult() {
 	this.assertContent(`[{"fields":["field1"],"message":"message1"},{"fields":["field2"],"message":"message2"},{"fields":["field3","field4"],"message":"message3"}]`)
 	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
 }
-
 func (this *ResultFixture) TestValidationResult_SerializationFailure_HTTP500WithErrorMessage() {
 	result := &ValidationResult{
 		Failure1: new(BadJSON),
@@ -188,3 +182,11 @@ func (this *ResultFixture) assertHasHeader(key, value string) {
 	this.So(this.response.HeaderMap, should.ContainKey, key)
 	this.So(this.response.HeaderMap[key], should.Resemble, []string{value})
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+type BadJSON struct{}
+
+func (this *BadJSON) Error() string                { return "Implement the error interface." }
+func (this *BadJSON) MarshalJSON() ([]byte, error) { return nil, errors.New("GOPHERS!") }
+
