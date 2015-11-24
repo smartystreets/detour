@@ -40,7 +40,7 @@ type (
 )
 
 func (this *StatusCodeResult) Render(response http.ResponseWriter, request *http.Request) {
-	writeStatusAndContentType(response, this.StatusCode, plaintextContentType)
+	writeContentTypeAndStatusCode(response, this.StatusCode, plaintextContentType)
 	if len(this.Message) > 0 {
 		response.Write([]byte(this.Message))
 	}
@@ -48,31 +48,32 @@ func (this *StatusCodeResult) Render(response http.ResponseWriter, request *http
 
 func (this *ContentResult) Render(response http.ResponseWriter, request *http.Request) {
 	contentType := selectContentType(this.ContentType, plaintextContentType)
-	writeStatusAndContentType(response, this.StatusCode, contentType)
+	writeContentTypeAndStatusCode(response, this.StatusCode, contentType)
 	response.Write([]byte(this.Content))
 }
 
 func (this *BinaryResult) Render(response http.ResponseWriter, request *http.Request) {
-	contentType := selectContentType(this.ContentType, plaintextContentType)
-	writeStatusAndContentType(response, this.StatusCode, contentType)
+	contentType := selectContentType(this.ContentType, octetStreamContentType)
+	writeContentTypeAndStatusCode(response, this.StatusCode, contentType)
 	response.Write(this.Content)
 }
 
 func (this *JSONResult) Render(response http.ResponseWriter, request *http.Request) {
 	contentType := selectContentType(this.ContentType, jsonContentType)
-	writeStatusAndContentType(response, this.StatusCode, contentType)
-	json.NewEncoder(response).Encode(this.Content)
+	writeContentType(response, contentType)
+	serializeAndWrite(response, this.StatusCode, this.Content)
 }
 
 func (this *ValidationResult) Render(response http.ResponseWriter, request *http.Request) {
-	writeStatusAndContentType(response, 422, jsonContentType)
+	writeContentType(response, jsonContentType)
 
 	var failures ValidationErrors
 	failures = failures.Append(this.Failure1)
 	failures = failures.Append(this.Failure2)
 	failures = failures.Append(this.Failure3)
 	failures = failures.Append(this.Failure4)
-	json.NewEncoder(response).Encode(failures)
+
+	serializeAndWrite(response, 422, failures)
 }
 
 func (this *CookieResult) Render(response http.ResponseWriter, request *http.Request) {
@@ -93,11 +94,32 @@ func selectContentType(values ...string) string {
 	return ""
 }
 
-func writeStatusAndContentType(response http.ResponseWriter, statusCode int, contentType string) {
+func writeContentTypeAndStatusCode(response http.ResponseWriter, statusCode int, contentType string) {
+	writeContentType(response, contentType)
+	response.WriteHeader(statusCode)
+}
+func writeContentType(response http.ResponseWriter, contentType string) {
 	if len(contentType) > 0 {
 		response.Header().Set(contentTypeHeader, contentType) // doesn't get written unless status code is written last!
 	}
+}
+
+func serializeAndWrite(response http.ResponseWriter, statusCode int, content interface{}) {
+	if content, err := json.Marshal(content); err == nil {
+		writeContent(response, statusCode, content)
+	} else {
+		writeError(response)
+	}
+}
+func writeContent(response http.ResponseWriter, statusCode int, content []byte) {
 	response.WriteHeader(statusCode)
+	response.Write(content)
+}
+func writeError(response http.ResponseWriter) {
+	response.WriteHeader(http.StatusInternalServerError)
+	errContent := make(ValidationErrors, 0).Append(SimpleValidationError("Marshal failure", "HTTP Response"))
+	content, _ := json.Marshal(errContent)
+	response.Write(content)
 }
 
 const (

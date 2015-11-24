@@ -1,6 +1,7 @@
 package binding
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/smartystreets/assertions/should"
@@ -10,6 +11,7 @@ import (
 
 type ResultFixture struct {
 	*gunit.Fixture
+
 	response *httptest2.ResponseRecorder
 }
 
@@ -109,6 +111,22 @@ func (this *ResultFixture) TestJSONResult_WithCustomContentType() {
 	this.assertContent(`{"key":"value"}`)
 	this.assertHasHeader("Content-Type", "application/custom-json")
 }
+func (this *ResultFixture) TestJSONResult_SerializationFailure_HTTP500WithErrorMessage() {
+	result := &JSONResult{
+		StatusCode: 123,
+		Content:    new(BadJSON),
+	}
+	this.render(result)
+
+	this.assertStatusCode(500)
+	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
+	this.assertContent(`[{"fields":["HTTP Response"],"message":"Marshal failure"}]`)
+}
+
+type BadJSON struct{}
+
+func (this *BadJSON) Error() string                { return "Implement the error interface." }
+func (this *BadJSON) MarshalJSON() ([]byte, error) { return nil, errors.New("GOPHERS!") }
 
 func (this *ResultFixture) TestValidationResult() {
 	result := &ValidationResult{
@@ -123,6 +141,18 @@ func (this *ResultFixture) TestValidationResult() {
 	this.assertStatusCode(422)
 	this.assertContent(`[{"fields":["field1"],"message":"message1"},{"fields":["field2"],"message":"message2"},{"fields":["field3","field4"],"message":"message3"}]`)
 	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
+}
+
+func (this *ResultFixture) TestValidationResult_SerializationFailure_HTTP500WithErrorMessage() {
+	result := &ValidationResult{
+		Failure1: new(BadJSON),
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(500)
+	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
+	this.assertContent(`[{"fields":["HTTP Response"],"message":"Marshal failure"}]`)
 }
 
 func (this *ResultFixture) TestCookieResult() {
