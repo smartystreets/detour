@@ -91,8 +91,8 @@ func selectContentType(values ...string) string {
 }
 
 func writeStatusAndContentType(response http.ResponseWriter, statusCode int, contentType string) {
-	response.WriteHeader(statusCode)
 	if len(contentType) > 0 {
-		response.Header().Set("Content-Type", contentType)
+		response.Header().Set("Content-Type", contentType) // doesn't get written unless status code is written last!
 	}
+	response.WriteHeader(statusCode)
 }
