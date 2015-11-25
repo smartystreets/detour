@@ -1,14 +1,20 @@
-# binding
+# detour
 --
-    import "github.com/smartystreets/binding"
+    import "github.com/smartystreets/detour"
 
+package detour offers an alternate, MVC-based, approach to HTTP applications.
+Rather than writing traditional http handlers you define input models that have
+optional Bind() and Validate() methods and which can be passed into methods on
+structs which return a Renderer. Each of these concepts is glued together by the
+ActionHandler struct via the New() function. See the example folder for a
+complete example.
 
 ## Usage
 
-#### func  ComplexValidationError
+#### func  CompoundInputError
 
 ```go
-func ComplexValidationError(message string, fields ...string) error
+func CompoundInputError(message string, fields ...string) error
 ```
 
 #### func  New
@@ -17,10 +23,10 @@ func ComplexValidationError(message string, fields ...string) error
 func New(controllerAction interface{}) http.Handler
 ```
 
-#### func  SimpleValidationError
+#### func  SimpleInputError
 
 ```go
-func SimpleValidationError(message, field string) error
+func SimpleInputError(message, field string) error
 ```
 
 #### type ActionHandler
@@ -105,6 +111,60 @@ type CreateModel func() interface{}
 ```
 
 
+#### type ErrorResult
+
+```go
+type ErrorResult struct {
+	StatusCode int
+	Error1     error
+	Error2     error
+	Error3     error
+	Error4     error
+}
+```
+
+
+#### func (*ErrorResult) Render
+
+```go
+func (this *ErrorResult) Render(response http.ResponseWriter, request *http.Request)
+```
+
+#### type Errors
+
+```go
+type Errors []error
+```
+
+
+#### func (Errors) Append
+
+```go
+func (this Errors) Append(err error) Errors
+```
+
+#### func (Errors) Error
+
+```go
+func (this Errors) Error() string
+```
+
+#### type InputError
+
+```go
+type InputError struct {
+	Fields  []string `json:"fields"`
+	Message string   `json:"message"`
+}
+```
+
+
+#### func (*InputError) Error
+
+```go
+func (this *InputError) Error() string
+```
+
 #### type JSONResult
 
 ```go
@@ -159,41 +219,6 @@ type StatusCodeResult struct {
 
 ```go
 func (this *StatusCodeResult) Render(response http.ResponseWriter, request *http.Request)
-```
-
-#### type ValidationError
-
-```go
-type ValidationError struct {
-	Fields  []string `json:"fields"`
-	Message string   `json:"message"`
-}
-```
-
-
-#### func (*ValidationError) Error
-
-```go
-func (this *ValidationError) Error() string
-```
-
-#### type ValidationErrors
-
-```go
-type ValidationErrors []error
-```
-
-
-#### func (ValidationErrors) Append
-
-```go
-func (this ValidationErrors) Append(err error) ValidationErrors
-```
-
-#### func (ValidationErrors) Error
-
-```go
-func (this ValidationErrors) Error() string
 ```
 
 #### type ValidationResult

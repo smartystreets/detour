@@ -1,4 +1,4 @@
-package binding
+package detour
 
 import (
 	"errors"
