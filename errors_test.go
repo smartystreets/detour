@@ -10,7 +10,7 @@ import (
 type ErrorFixture struct {
 	*gunit.Fixture
 
-	problems ValidationErrors
+	problems Errors
 }
 
 func (this *ErrorFixture) TestErrorAggregation() {
@@ -22,8 +22,8 @@ func (this *ErrorFixture) TestErrorAggregation() {
 	this.So(len(this.problems), should.Equal, 2)
 }
 
-func (this *ErrorFixture) TestValidationErrorSerialization() {
-	this.problems = this.problems.Append(SimpleValidationError("Hello", "World"))
+func (this *ErrorFixture) TestErrorSerialization() {
+	this.problems = this.problems.Append(SimpleInputError("Hello", "World"))
 
 	this.So(this.problems.Error(), should.Equal, `[{"fields":["World"],"message":"Hello"}]`)
 }

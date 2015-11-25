@@ -94,7 +94,7 @@ func (this *ActionHandler) validate(message interface{}) error {
 		return nil
 	} else if err := validator.Validate(); err == nil {
 		return nil
-	} else if errors, ok := err.(ValidationErrors); ok && len(errors) == 0 {
+	} else if errors, ok := err.(Errors); ok && len(errors) == 0 {
 		return nil
 	} else {
 		return err

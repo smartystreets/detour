@@ -89,7 +89,7 @@ type ValidatingEmptyErrorsInputModel struct{ Content string }
 
 func (this *ValidatingEmptyErrorsInputModel) Validate() error {
 	this.Content = "ValidatingEmptyErrorsInputModel"
-	var errors ValidationErrors
+	var errors Errors
 	return errors
 }
 

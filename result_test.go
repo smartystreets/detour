@@ -125,10 +125,10 @@ func (this *ResultFixture) TestJSONResult_SerializationFailure_HTTP500WithErrorM
 
 func (this *ResultFixture) TestValidationResult() {
 	result := &ValidationResult{
-		Failure1: SimpleValidationError("message1", "field1"),
-		Failure2: SimpleValidationError("message2", "field2"),
+		Failure1: SimpleInputError("message1", "field1"),
+		Failure2: SimpleInputError("message2", "field2"),
 		Failure3: nil,
-		Failure4: ComplexValidationError("message3", "field3", "field4"),
+		Failure4: CompoundInputError("message3", "field3", "field4"),
 	}
 
 	this.render(result)
@@ -147,6 +147,22 @@ func (this *ResultFixture) TestValidationResult_SerializationFailure_HTTP500With
 	this.assertStatusCode(500)
 	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
 	this.assertContent(`[{"fields":["HTTP Response"],"message":"Marshal failure"}]`)
+}
+
+func (this *ResultFixture) TestErrorResult() {
+	result := &ErrorResult{
+		StatusCode: 409,
+		Error1: SimpleInputError("message1", "field1"),
+		Error2: SimpleInputError("message2", "field2"),
+		Error3: nil,
+		Error4: CompoundInputError("message3", "field3", "field4"),
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(409)
+	this.assertContent(`[{"fields":["field1"],"message":"message1"},{"fields":["field2"],"message":"message2"},{"fields":["field3","field4"],"message":"message3"}]`)
+	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
 }
 
 func (this *ResultFixture) TestCookieResult() {
