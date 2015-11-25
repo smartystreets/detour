@@ -189,4 +189,3 @@ type BadJSON struct{}
 
 func (this *BadJSON) Error() string                { return "Implement the error interface." }
 func (this *BadJSON) MarshalJSON() ([]byte, error) { return nil, errors.New("GOPHERS!") }
-

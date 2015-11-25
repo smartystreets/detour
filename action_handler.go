@@ -73,9 +73,9 @@ func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http
 }
 
 func writeJSONError(response http.ResponseWriter, err error, code int) {
-	response.WriteHeader(code) // reverse this and the following line, the tests pass but production is different
+	response.WriteHeader(code)                                // reverse this and the following line, the tests pass but production is different
 	response.Header().Set("Content-Type", "application/json") // TODO: this should be written before the content type
-	fmt.Fprint(response, err.Error()) // reverse this line and the line above, the tests pass but production is different
+	fmt.Fprint(response, err.Error())                         // reverse this line and the line above, the tests pass but production is different
 }
 
 func (this *ActionHandler) bind(request *http.Request, message interface{}) error {
