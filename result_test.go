@@ -152,10 +152,10 @@ func (this *ResultFixture) TestValidationResult_SerializationFailure_HTTP500With
 func (this *ResultFixture) TestErrorResult() {
 	result := &ErrorResult{
 		StatusCode: 409,
-		Error1: SimpleInputError("message1", "field1"),
-		Error2: SimpleInputError("message2", "field2"),
-		Error3: nil,
-		Error4: CompoundInputError("message3", "field3", "field4"),
+		Error1:     SimpleInputError("message1", "field1"),
+		Error2:     SimpleInputError("message2", "field2"),
+		Error3:     nil,
+		Error4:     CompoundInputError("message3", "field3", "field4"),
 	}
 
 	this.render(result)

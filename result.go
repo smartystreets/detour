@@ -33,10 +33,10 @@ type (
 	}
 	ErrorResult struct {
 		StatusCode int
-		Error1 error
-		Error2 error
-		Error3 error
-		Error4 error
+		Error1     error
+		Error2     error
+		Error3     error
+		Error4     error
 	}
 	CookieResult struct {
 		Cookie1 *http.Cookie
