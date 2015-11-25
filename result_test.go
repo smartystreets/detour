@@ -31,7 +31,7 @@ func (this *ResultFixture) TestStatusCodeResult() {
 
 	this.assertStatusCode(456)
 	this.assertContent("Status 456")
-	this.assertHasHeader("Content-Type", "text/plain")
+	this.assertHasHeader(contentTypeHeader, plaintextContentType)
 }
 
 func (this *ResultFixture) TestContentResult() {
@@ -44,7 +44,7 @@ func (this *ResultFixture) TestContentResult() {
 
 	this.assertStatusCode(456)
 	this.assertContent("Hello, World!")
-	this.assertHasHeader("Content-Type", "text/plain")
+	this.assertHasHeader(contentTypeHeader, plaintextContentType)
 }
 func (this *ResultFixture) TestContentResult_WithCustomContentType() {
 	result := &ContentResult{
@@ -57,7 +57,7 @@ func (this *ResultFixture) TestContentResult_WithCustomContentType() {
 
 	this.assertStatusCode(456)
 	this.assertContent("Hello, World!")
-	this.assertHasHeader("Content-Type", "application/custom-text")
+	this.assertHasHeader(contentTypeHeader, "application/custom-text")
 }
 
 func (this *ResultFixture) TestBinaryResult() {
@@ -70,7 +70,7 @@ func (this *ResultFixture) TestBinaryResult() {
 
 	this.assertStatusCode(456)
 	this.assertContent("Hello, World!")
-	this.assertHasHeader("Content-Type", "application/octet-stream")
+	this.assertHasHeader(contentTypeHeader, octetStreamContentType)
 }
 func (this *ResultFixture) TestBinaryResult_WithCustomContentType() {
 	result := &BinaryResult{
@@ -83,7 +83,7 @@ func (this *ResultFixture) TestBinaryResult_WithCustomContentType() {
 
 	this.assertStatusCode(456)
 	this.assertContent("Hello, World!")
-	this.assertHasHeader("Content-Type", "application/custom-binary")
+	this.assertHasHeader(contentTypeHeader, "application/custom-binary")
 }
 
 func (this *ResultFixture) TestJSONResult() {
@@ -96,7 +96,7 @@ func (this *ResultFixture) TestJSONResult() {
 
 	this.assertStatusCode(123)
 	this.assertContent(`{"key":"value"}`)
-	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
+	this.assertHasHeader(contentTypeHeader, jsonContentType)
 }
 func (this *ResultFixture) TestJSONResult_WithCustomContentType() {
 	result := &JSONResult{
@@ -109,7 +109,7 @@ func (this *ResultFixture) TestJSONResult_WithCustomContentType() {
 
 	this.assertStatusCode(123)
 	this.assertContent(`{"key":"value"}`)
-	this.assertHasHeader("Content-Type", "application/custom-json")
+	this.assertHasHeader(contentTypeHeader, "application/custom-json")
 }
 func (this *ResultFixture) TestJSONResult_SerializationFailure_HTTP500WithErrorMessage() {
 	result := &JSONResult{
@@ -119,7 +119,7 @@ func (this *ResultFixture) TestJSONResult_SerializationFailure_HTTP500WithErrorM
 	this.render(result)
 
 	this.assertStatusCode(500)
-	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
+	this.assertHasHeader(contentTypeHeader, jsonContentType)
 	this.assertContent(`[{"fields":["HTTP Response"],"message":"Marshal failure"}]`)
 }
 
@@ -135,7 +135,7 @@ func (this *ResultFixture) TestValidationResult() {
 
 	this.assertStatusCode(422)
 	this.assertContent(`[{"fields":["field1"],"message":"message1"},{"fields":["field2"],"message":"message2"},{"fields":["field3","field4"],"message":"message3"}]`)
-	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
+	this.assertHasHeader(contentTypeHeader, jsonContentType)
 }
 func (this *ResultFixture) TestValidationResult_SerializationFailure_HTTP500WithErrorMessage() {
 	result := &ValidationResult{
@@ -145,7 +145,7 @@ func (this *ResultFixture) TestValidationResult_SerializationFailure_HTTP500With
 	this.render(result)
 
 	this.assertStatusCode(500)
-	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
+	this.assertHasHeader(contentTypeHeader, jsonContentType)
 	this.assertContent(`[{"fields":["HTTP Response"],"message":"Marshal failure"}]`)
 }
 
@@ -162,7 +162,7 @@ func (this *ResultFixture) TestErrorResult() {
 
 	this.assertStatusCode(409)
 	this.assertContent(`[{"fields":["field1"],"message":"message1"},{"fields":["field2"],"message":"message2"},{"fields":["field3","field4"],"message":"message3"}]`)
-	this.assertHasHeader("Content-Type", "application/json; charset=utf-8")
+	this.assertHasHeader(contentTypeHeader, jsonContentType)
 }
 
 func (this *ResultFixture) TestCookieResult() {

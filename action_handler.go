@@ -73,7 +73,7 @@ func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http
 }
 
 func writeJSONError(response http.ResponseWriter, err error, code int) {
-	response.Header().Set("Content-Type", "application/json")
+	response.Header().Set(contentTypeHeader, jsonContentType)
 	response.WriteHeader(code)
 	fmt.Fprint(response, err.Error())
 }

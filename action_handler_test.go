@@ -53,7 +53,7 @@ func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400() {
 	binder := New(this.controller.HandleBindingFailsInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 400)
-	this.So(this.response.HeaderMap.Get("Content-Type"), should.Equal, "application/json")
+	this.So(this.response.HeaderMap.Get(contentTypeHeader), should.Equal, jsonContentType)
 	this.So(this.response.Body.String(), should.ContainSubstring, "BindingFailsInputModel")
 }
 
@@ -68,7 +68,7 @@ func (this *ModelBinderFixture) TestValidatesModelAndHandlesError__HTTP422() {
 	binder := New(this.controller.HandleValidatingFailsInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 422)
-	this.So(this.response.HeaderMap.Get("Content-Type"), should.Equal, "application/json")
+	this.So(this.response.HeaderMap.Get(contentTypeHeader), should.Equal, jsonContentType)
 	this.So(this.response.Body.String(), should.ContainSubstring, "ValidatingFailsInputModel")
 }
 
