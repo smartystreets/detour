@@ -2,10 +2,10 @@ package binding
 
 import (
 	"net/http"
-	"net/http/httptest"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
+	"github.com/smartystreets/httptest2"
 )
 
 type ModelBinderFixture struct {
@@ -13,13 +13,13 @@ type ModelBinderFixture struct {
 
 	controller *Controller
 	request    *http.Request
-	response   *httptest.ResponseRecorder
+	response   *httptest2.ResponseRecorder
 }
 
 func (this *ModelBinderFixture) Setup() {
 	this.controller = &Controller{}
 	this.request, _ = http.NewRequest("GET", "/?binding=BindingInputModel", nil)
-	this.response = httptest.NewRecorder()
+	this.response = httptest2.NewRecorder()
 }
 
 func (this *ModelBinderFixture) TestBasicInputModelProvidedToApplication__HTTP200() {
@@ -53,7 +53,7 @@ func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400() {
 	binder := New(this.controller.HandleBindingFailsInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 400)
-	this.So(this.response.Header().Get("Content-Type"), should.Equal, "application/json")
+	this.So(this.response.HeaderMap.Get("Content-Type"), should.Equal, "application/json")
 	this.So(this.response.Body.String(), should.ContainSubstring, "BindingFailsInputModel")
 }
 
@@ -68,7 +68,7 @@ func (this *ModelBinderFixture) TestValidatesModelAndHandlesError__HTTP422() {
 	binder := New(this.controller.HandleValidatingFailsInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 422)
-	this.So(this.response.Header().Get("Content-Type"), should.Equal, "application/json")
+	this.So(this.response.HeaderMap.Get("Content-Type"), should.Equal, "application/json")
 	this.So(this.response.Body.String(), should.ContainSubstring, "ValidatingFailsInputModel")
 }
 
