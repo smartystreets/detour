@@ -60,66 +60,49 @@ func parseModelType(action interface{}) reflect.Type {
 }
 
 func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
-	NewAction(this.input(), this.controller, request, response).Execute()
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-type Action struct {
-	request    *http.Request
-	response   http.ResponseWriter
-	controller MonadicAction
-	message    interface{}
-	finished   bool
-}
-
-func NewAction(message interface{}, controller MonadicAction, request *http.Request, response http.ResponseWriter) *Action {
-	return &Action{
-		message:    message,
-		controller: controller,
-		request:    request,
-		response:   response,
+	message := this.input()
+	if !this.bind(request, message, response) {
+		return
 	}
-}
+	this.sanitize(message)
 
-func (this *Action) Execute() {
-	this.step(this.bind)
-	this.step(this.sanitize)
-	this.step(this.validate)
-	this.step(this.error)
-	this.step(this.handle)
-}
-func (this *Action) step(action func()) {
-	if !this.finished {
-		action()
+	if !this.validate(message, response) {
+		return
 	}
-}
-func (this *Action) bind() {
-	if err := bind(this.request, this.message); err != nil {
-		writeJSONError(this.response, err, http.StatusBadRequest)
-		this.finished = true
+	if !this.error(message, response) {
+		return
 	}
+	this.handle(message, response, request)
 }
-func (this *Action) sanitize() {
-	if sanitizer, ok := this.message.(Sanitizer); ok {
+func (this *ActionHandler) bind(request *http.Request, message interface{}, response http.ResponseWriter) bool {
+	if err := bind(request, message); err != nil {
+		writeJSONError(response, err, http.StatusBadRequest)
+		return false
+	}
+	return true
+}
+func (this *ActionHandler) sanitize(message interface{}) {
+	if sanitizer, ok := message.(Sanitizer); ok {
 		sanitizer.Sanitize()
 	}
 }
-func (this *Action) validate() {
-	if err := validate(this.message); err != nil {
-		writeJSONError(this.response, err, httpStatusUnprocessableEntity)
-		this.finished = true
+func (this *ActionHandler) validate(message interface{}, response http.ResponseWriter) bool {
+	if err := validate(message); err != nil {
+		writeJSONError(response, err, httpStatusUnprocessableEntity)
+		return false
 	}
+	return true
 }
-func (this *Action) error() {
-	if server, ok := this.message.(ServerError); ok && server.Error() {
-		writeInternalServerError(this.response)
-		this.finished = true
+func (this *ActionHandler) error(message interface{}, response http.ResponseWriter) bool {
+	if server, ok := message.(ServerError); ok && server.Error() {
+		writeInternalServerError(response)
+		return false
 	}
+	return true
 }
-func (this *Action) handle() {
-	if result := this.controller(this.message); result != nil {
-		result.Render(this.response, this.request)
+func (this *ActionHandler) handle(message interface{}, response http.ResponseWriter, request *http.Request) {
+	if result := this.controller(message); result != nil {
+		result.Render(response, request)
 	}
 }
 
