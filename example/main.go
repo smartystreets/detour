@@ -67,11 +67,11 @@ type Controller struct {
 
 // SayHello is a controller action that, when called by the ServeHTTP method of
 // the ActionHandler will receive a SalutationInputModel. By this time the
-// input's Bind() and Validate() methods will have already been called. The
-// returned detour.Renderer will be written to the actual http.ResponseWriter
-// by the ServeHTTP method of the ActionHandler. The detour package provides
-// various types that implement the Renderer interface. Users of this package
-// may also supply their own types that implement the Renderer interface.
+// input's Bind(), Sanitize(), Validate(), and Error() methods will have already
+// been called. The returned detour.Renderer will be written to the actual
+// http.ResponseWriter by the ServeHTTP method of the ActionHandler. The detour
+// package provides various types that implement the Renderer interface. Users of
+// this package may also supply their own types that implement the Renderer interface.
 func (this *Controller) SayHello(input *SalutationInputModel) detour.Renderer {
 	// This ContentResult will be serialized to the http.ResponseWriter in ActionHandler.
 	return &detour.ContentResult{
@@ -93,6 +93,8 @@ type SalutationInputModel struct {
 // string, the URL, or whatever! Any error returned here will become
 // an HTTP 400 (Bad Request) and will prevent the Validate method from being
 // called along with any controller actions that expect/receive this type.
+// Implementing this method is optional (but the only way to get information
+// from the request onto the input model).
 func (this *SalutationInputModel) Bind(request *http.Request) error {
 	// request.ParseForm() will have already been called in ActionHandler.
 	this.Name = request.Form.Get("name")
@@ -103,6 +105,7 @@ func (this *SalutationInputModel) Bind(request *http.Request) error {
 // The reason for splitting apart Bind and Sanitize is to allow the Sanitize logic to be
 // tested independent of the *http.Request which is received by Bind.
 // Sanitize returns no error, but could save errors for Validate to return if needed.
+// Implementing this method is optional.
 func (this *SalutationInputModel) Sanitize() {
 	this.Name = strings.Title(this.Name)
 }
@@ -111,10 +114,17 @@ func (this *SalutationInputModel) Sanitize() {
 // semantically correct. Any error returned from this function will result
 // in an HTTP 422 (Unprocessable Entity) and will skip any controller
 // actions that expect/receive this type.
+// Implementing this method is optional.
 func (this *SalutationInputModel) Validate() error {
 	var errors detour.Errors
 	if len(this.Name) == 0 {
 		errors = errors.Append(detour.SimpleInputError("The field is required", "name"))
 	}
 	return errors
+}
+
+// Error allows an internal server error to be returned if conditions are right for that.
+// Implementing this method is optional.
+func (this *SalutationInputModel) Error() bool {
+	return false
 }
