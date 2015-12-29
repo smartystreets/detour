@@ -57,6 +57,13 @@ func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400() {
 	this.So(this.response.Body.String(), should.ContainSubstring, "BindingFailsInputModel")
 }
 
+func (this *ModelBinderFixture) TestSanitizesModelIfAvailable() {
+	sanitizer := New(this.controller.HandleSanitizingInputModel)
+	sanitizer.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, http.StatusOK)
+	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: SANITIZINGINPUTMODEL")
+}
+
 func (this *ModelBinderFixture) TestValidatesModelForApplication__HTTP200() {
 	binder := New(this.controller.HandleValidatingInputModel)
 	binder.ServeHTTP(this.response, this.request)

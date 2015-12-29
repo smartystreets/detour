@@ -1,6 +1,9 @@
 package detour
 
-import "net/http"
+import (
+	"net/http"
+	"strings"
+)
 
 ///////////////////////////////////////////////////////////////
 
@@ -14,6 +17,9 @@ func (this *Controller) HandleBindingInputModel(model *BindingInputModel) Render
 }
 func (this *Controller) HandleBindingFailsInputModel(model *BindingFailsInputModel) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
+}
+func (this *Controller) HandleSanitizingInputModel(model *SanitizingInputModel) Renderer {
+	return &ControllerResponse{Body: model.Content}
 }
 func (this *Controller) HandleValidatingInputModel(model *ValidatingInputModel) Renderer {
 	return &ControllerResponse{Body: model.Content}
@@ -58,6 +64,21 @@ type BindingFailsInputModel struct{}
 
 func (this *BindingFailsInputModel) Bind(request *http.Request) error {
 	return NewBindingValidationError("BindingFailsInputModel")
+}
+
+/////
+
+type SanitizingInputModel struct {
+	Content string
+}
+
+func (this *SanitizingInputModel) Bind(request *http.Request) error {
+	this.Content = request.Form.Get("binding")
+	return nil
+}
+
+func (this *SanitizingInputModel) Sanitize() {
+	this.Content = strings.ToUpper(strings.Replace(this.Content, "Binding", "Sanitizing", 1))
 }
 
 /////

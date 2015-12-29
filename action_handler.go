@@ -63,13 +63,20 @@ func parseModelType(action interface{}) reflect.Type {
 
 func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	message := this.input()
+
 	if err := this.bind(request, message); err != nil {
 		writeJSONError(response, err, http.StatusBadRequest)
-	} else if err := this.validate(message); err != nil {
-		writeJSONError(response, err, httpStatusUnprocessableEntity)
-	} else {
-		this.handle(response, request, message)
+		return
 	}
+
+	this.sanitize(message)
+
+	if err := this.validate(message); err != nil {
+		writeJSONError(response, err, httpStatusUnprocessableEntity)
+		return
+	}
+
+	this.handle(response, request, message)
 }
 
 func writeJSONError(response http.ResponseWriter, err error, code int) {
@@ -86,6 +93,12 @@ func (this *ActionHandler) bind(request *http.Request, message interface{}) erro
 		return err
 	} else {
 		return binder.Bind(request)
+	}
+}
+
+func (this *ActionHandler) sanitize(message interface{}) {
+	if sanitizer, ok := message.(Sanitizer); ok {
+		sanitizer.Sanitize()
 	}
 }
 

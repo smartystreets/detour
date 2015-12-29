@@ -11,6 +11,10 @@ type (
 		Bind(*http.Request) error
 	}
 
+	Sanitizer interface {
+		Sanitize()
+	}
+
 	Validator interface {
 		Validate() error
 	}
