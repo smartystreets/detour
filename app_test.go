@@ -30,6 +30,12 @@ func (this *Controller) HandleValidatingEmptyErrors(model *ValidatingEmptyErrors
 func (this *Controller) HandleValidatingFailsInputModel(model *ValidatingFailsInputModel) Renderer {
 	panic("We shouldn't reach this point because the validation failed.")
 }
+func (this *Controller) HandleFinalError(model *FinalErrorInputModel) Renderer {
+	panic("We should't reach this point because the Error method returned true.")
+}
+func (this *Controller) HandleNoFinalError(model *NoFinalErrorInputModel) Renderer {
+	return nil
+}
 func (this *Controller) HandleNilResponseInputModel(model *NilResponseInputModel) Renderer {
 	return nil
 }
@@ -113,6 +119,18 @@ func (this *ValidatingEmptyErrorsInputModel) Validate() error {
 	var errors Errors
 	return errors
 }
+
+/////
+
+type FinalErrorInputModel struct{}
+
+func (this *FinalErrorInputModel) Error() bool { return true }
+
+/////
+
+type NoFinalErrorInputModel struct{}
+
+func (this *NoFinalErrorInputModel) Error() bool { return false }
 
 /////
 

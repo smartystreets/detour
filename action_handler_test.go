@@ -86,6 +86,19 @@ func (this *ModelBinderFixture) TestValidatesModelEmptyValidationErrors__HTTP200
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: ValidatingEmptyErrorsInputModel")
 }
 
+func (this *ModelBinderFixture) TestFinalErrorCondition__HTTP500() {
+	action := New(this.controller.HandleFinalError)
+	action.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 500)
+	this.So(this.response.Body.String(), should.EqualTrimSpace, "Internal Server Error")
+}
+
+func (this *ModelBinderFixture) TestNoFinalErrorCondition__HTTP200() {
+	action := New(this.controller.HandleNoFinalError)
+	action.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 200)
+}
+
 func (this *ModelBinderFixture) TestNilResponseFromApplication__HTTP200() {
 	binder := New(this.controller.HandleNilResponseInputModel)
 	binder.ServeHTTP(this.response, this.request)

@@ -59,33 +59,71 @@ func parseModelType(action interface{}) reflect.Type {
 	}
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
 func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
-	message := this.input()
-
-	if err := this.bind(request, message); err != nil {
-		writeJSONError(response, err, http.StatusBadRequest)
-		return
-	}
-
-	this.sanitize(message)
-
-	if err := this.validate(message); err != nil {
-		writeJSONError(response, err, httpStatusUnprocessableEntity)
-		return
-	}
-
-	this.handle(response, request, message)
+	NewAction(this.input(), this.controller, request, response).Execute()
 }
 
-func writeJSONError(response http.ResponseWriter, err error, code int) {
-	response.Header().Set(contentTypeHeader, jsonContentType)
-	response.WriteHeader(code)
-	fmt.Fprint(response, err.Error())
+///////////////////////////////////////////////////////////////////////////////
+
+type Action struct {
+	request    *http.Request
+	response   http.ResponseWriter
+	controller MonadicAction
+	message    interface{}
+	finished   bool
 }
 
-func (this *ActionHandler) bind(request *http.Request, message interface{}) error {
+func NewAction(message interface{}, controller MonadicAction, request *http.Request, response http.ResponseWriter) *Action {
+	return &Action{
+		message:    message,
+		controller: controller,
+		request:    request,
+		response:   response,
+	}
+}
+
+func (this *Action) Execute() {
+	this.step(this.bind)
+	this.step(this.sanitize)
+	this.step(this.validate)
+	this.step(this.error)
+	this.step(this.handle)
+}
+func (this *Action) step(action func()) {
+	if !this.finished {
+		action()
+	}
+}
+func (this *Action) bind() {
+	if err := bind(this.request, this.message); err != nil {
+		writeJSONError(this.response, err, http.StatusBadRequest)
+		this.finished = true
+	}
+}
+func (this *Action) sanitize() {
+	if sanitizer, ok := this.message.(Sanitizer); ok {
+		sanitizer.Sanitize()
+	}
+}
+func (this *Action) validate() {
+	if err := validate(this.message); err != nil {
+		writeJSONError(this.response, err, httpStatusUnprocessableEntity)
+		this.finished = true
+	}
+}
+func (this *Action) error() {
+	if server, ok := this.message.(ServerError); ok && server.Error() {
+		writeInternalServerError(this.response)
+		this.finished = true
+	}
+}
+func (this *Action) handle() {
+	if result := this.controller(this.message); result != nil {
+		result.Render(this.response, this.request)
+	}
+}
+
+func bind(request *http.Request, message interface{}) error {
 	// FUTURE: if request has a Body (PUT/POST) and Content-Type: application/json
 	if binder, ok := message.(Binder); !ok {
 		return nil
@@ -95,14 +133,7 @@ func (this *ActionHandler) bind(request *http.Request, message interface{}) erro
 		return binder.Bind(request)
 	}
 }
-
-func (this *ActionHandler) sanitize(message interface{}) {
-	if sanitizer, ok := message.(Sanitizer); ok {
-		sanitizer.Sanitize()
-	}
-}
-
-func (this *ActionHandler) validate(message interface{}) error {
+func validate(message interface{}) error {
 	if validator, ok := message.(Validator); !ok {
 		return nil
 	} else if err := validator.Validate(); err == nil {
@@ -113,11 +144,15 @@ func (this *ActionHandler) validate(message interface{}) error {
 		return err
 	}
 }
-
-func (this *ActionHandler) handle(response http.ResponseWriter, request *http.Request, message interface{}) {
-	if result := this.controller(message); result != nil {
-		result.Render(response, request)
-	}
+func writeJSONError(response http.ResponseWriter, err error, code int) {
+	response.Header().Set(contentTypeHeader, jsonContentType)
+	response.WriteHeader(code)
+	fmt.Fprint(response, err.Error())
+}
+func writeInternalServerError(response http.ResponseWriter) {
+	http.Error(response, internalServerErrorText, http.StatusInternalServerError)
 }
 
 const httpStatusUnprocessableEntity = 422
+
+var internalServerErrorText = http.StatusText(http.StatusInternalServerError)

@@ -19,6 +19,10 @@ type (
 		Validate() error
 	}
 
+	ServerError interface {
+		Error() bool
+	}
+
 	Renderer interface {
 		Render(http.ResponseWriter, *http.Request)
 	}
