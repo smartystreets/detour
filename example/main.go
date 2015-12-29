@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/smartystreets/detour"
+	"strings"
 )
 
 func main() {
@@ -42,7 +43,7 @@ func main() {
 		* Connection #0 to host localhost left intact
 		[{"fields":["name"],"message":"The field is required"}]
 
-		$ curl -v "http://localhost:8080/hello?name=Mike"
+		$ curl -v "http://localhost:8080/hello?name=mike"
 		*   Trying ::1...
 		* Connected to localhost (::1) port 8080 (#0)
 		> GET /hello?name=Mike HTTP/1.1
@@ -96,6 +97,14 @@ func (this *SalutationInputModel) Bind(request *http.Request) error {
 	// request.ParseForm() will have already been called in ActionHandler.
 	this.Name = request.Form.Get("name")
 	return nil
+}
+
+// Sanitize performs post processing (cleanup) on the data bound from the *http.Request.
+// The reason for splitting apart Bind and Sanitize is to allow the Sanitize logic to be
+// tested independent of the *http.Request which is received by Bind.
+// Sanitize returns no error, but could save errors for Validate to return if needed.
+func (this *SalutationInputModel) Sanitize() {
+	this.Name = strings.Title(this.Name)
 }
 
 // Validate inspects the fields populated by Bind() and ensures that they are
