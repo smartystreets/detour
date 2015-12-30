@@ -74,6 +74,7 @@ func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http
 	}
 	this.handle(message, response, request)
 }
+
 func (this *ActionHandler) bind(request *http.Request, message interface{}, response http.ResponseWriter) bool {
 	if err := bind(request, message); err != nil {
 		writeJSONError(response, err, http.StatusBadRequest)
@@ -81,6 +82,17 @@ func (this *ActionHandler) bind(request *http.Request, message interface{}, resp
 	}
 	return true
 }
+func bind(request *http.Request, message interface{}) error {
+	// FUTURE: if request has a Body (PUT/POST) and Content-Type: application/json
+	if binder, ok := message.(Binder); !ok {
+		return nil
+	} else if err := request.ParseForm(); err != nil {
+		return err
+	} else {
+		return binder.Bind(request)
+	}
+}
+
 func (this *ActionHandler) sanitize(message interface{}) {
 	if sanitizer, ok := message.(Sanitizer); ok {
 		sanitizer.Sanitize()
@@ -93,29 +105,6 @@ func (this *ActionHandler) validate(message interface{}, response http.ResponseW
 	}
 	return true
 }
-func (this *ActionHandler) error(message interface{}, response http.ResponseWriter) bool {
-	if server, ok := message.(ServerError); ok && server.Error() {
-		writeInternalServerError(response)
-		return false
-	}
-	return true
-}
-func (this *ActionHandler) handle(message interface{}, response http.ResponseWriter, request *http.Request) {
-	if result := this.controller(message); result != nil {
-		result.Render(response, request)
-	}
-}
-
-func bind(request *http.Request, message interface{}) error {
-	// FUTURE: if request has a Body (PUT/POST) and Content-Type: application/json
-	if binder, ok := message.(Binder); !ok {
-		return nil
-	} else if err := request.ParseForm(); err != nil {
-		return err
-	} else {
-		return binder.Bind(request)
-	}
-}
 func validate(message interface{}) error {
 	if validator, ok := message.(Validator); !ok {
 		return nil
@@ -127,6 +116,21 @@ func validate(message interface{}) error {
 		return err
 	}
 }
+
+func (this *ActionHandler) error(message interface{}, response http.ResponseWriter) bool {
+	if server, ok := message.(ServerError); ok && server.Error() {
+		writeInternalServerError(response)
+		return false
+	}
+	return true
+}
+
+func (this *ActionHandler) handle(message interface{}, response http.ResponseWriter, request *http.Request) {
+	if result := this.controller(message); result != nil {
+		result.Render(response, request)
+	}
+}
+
 func writeJSONError(response http.ResponseWriter, err error, code int) {
 	response.Header().Set(contentTypeHeader, jsonContentType)
 	response.WriteHeader(code)
