@@ -14,7 +14,7 @@ func main() {
 
 	// You can use any routing mechanism you want here. detour.New(..)
 	// gives back http.Handler. Pass references to controller methods
-	// to detour.New(..) and all the Bind(), Santize(), Validate(),
+	// to detour.New(..) and all the Bind(), Sanitize(), Validate(),
 	// and Renderer function will be called on the input parameter of the
 	// controller function.
 	http.Handle("/hello", detour.New(controller.SayHello))
@@ -125,7 +125,8 @@ func (this *SalutationInputModel) Validate() error {
 }
 
 // Error allows an HTTP 500 Internal Server Error to be returned if conditions are right for that.
-// Implementing this method is optional.
+// Implementing this method is optional. If implemented, a true value causes the HTTP 500 and
+// short-circuits any calls to controller actions that receive this type.
 func (this *SalutationInputModel) Error() bool {
 	return false
 }
