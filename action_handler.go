@@ -1,7 +1,6 @@
 package detour
 
 import (
-	"fmt"
 	"net/http"
 	"reflect"
 )
@@ -66,7 +65,7 @@ func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http
 	}
 	this.sanitize(message)
 
-	if !this.validate(message, response) {
+	if !this.validate(message, response, request) {
 		return
 	}
 	if !this.error(message, response) {
@@ -77,7 +76,7 @@ func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http
 
 func (this *ActionHandler) bind(request *http.Request, message interface{}, response http.ResponseWriter) bool {
 	if err := bind(request, message); err != nil {
-		writeJSONError(response, err, http.StatusBadRequest)
+		writeErrorResponse(response, request, err, http.StatusBadRequest)
 		return false
 	}
 	return true
@@ -98,9 +97,9 @@ func (this *ActionHandler) sanitize(message interface{}) {
 		sanitizer.Sanitize()
 	}
 }
-func (this *ActionHandler) validate(message interface{}, response http.ResponseWriter) bool {
+func (this *ActionHandler) validate(message interface{}, response http.ResponseWriter, request *http.Request) bool {
 	if err := validate(message); err != nil {
-		writeJSONError(response, err, httpStatusUnprocessableEntity)
+		writeErrorResponse(response, request, err, httpStatusUnprocessableEntity)
 		return false
 	}
 	return true
@@ -119,7 +118,7 @@ func validate(message interface{}) error {
 
 func (this *ActionHandler) error(message interface{}, response http.ResponseWriter) bool {
 	if server, ok := message.(ServerError); ok && server.Error() {
-		writeInternalServerError(response)
+		http.Error(response, internalServerErrorText, http.StatusInternalServerError)
 		return false
 	}
 	return true
@@ -131,13 +130,18 @@ func (this *ActionHandler) handle(message interface{}, response http.ResponseWri
 	}
 }
 
-func writeJSONError(response http.ResponseWriter, err error, code int) {
-	response.Header().Set(contentTypeHeader, jsonContentType)
-	response.WriteHeader(code)
-	fmt.Fprint(response, err.Error())
-}
-func writeInternalServerError(response http.ResponseWriter) {
-	http.Error(response, internalServerErrorText, http.StatusInternalServerError)
+func writeErrorResponse(response http.ResponseWriter, request *http.Request, err error, code int) {
+	var result Renderer
+
+	if _, ok := err.(Errors); ok {
+		result = &JSONResult{StatusCode: code, Content: err}
+	} else if _, ok := err.(*DiagnosticError); ok {
+		result = &DiagnosticResult{StatusCode: code, Message: err.Error()}
+	} else {
+		result = &StatusCodeResult{StatusCode: code, Message: err.Error()}
+	}
+
+	result.Render(response, request)
 }
 
 const httpStatusUnprocessableEntity = 422

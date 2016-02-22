@@ -12,14 +12,18 @@ func (this Errors) Append(err error) Errors {
 }
 
 func (this Errors) Error() string {
+	raw, _ := this.MarshalJSON()
+	return string(raw)
+}
+
+func (this Errors) MarshalJSON() ([]byte, error) {
 	filtered := []error{}
 	for _, err := range this {
 		if err != nil {
 			filtered = append(filtered, err)
 		}
 	}
-	raw, _ := json.Marshal(filtered)
-	return string(raw)
+	return json.Marshal(filtered)
 }
 
 type InputError struct {
@@ -35,4 +39,18 @@ func CompoundInputError(message string, fields ...string) error {
 }
 func (this *InputError) Error() string {
 	return this.Message
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+type DiagnosticError struct {
+	message string
+}
+
+func NewDiagnosticError(message string) *DiagnosticError {
+	return &DiagnosticError{message: message}
+}
+
+func (this *DiagnosticError) Error() string {
+	return this.message
 }

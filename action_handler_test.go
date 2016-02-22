@@ -49,12 +49,23 @@ func (this *ModelBinderFixture) TestBindsFormParseFails__HTTP400() {
 	this.So(this.response.Code, should.Equal, http.StatusBadRequest)
 }
 
-func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400() {
+func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400_JSONResponse() {
 	binder := New(this.controller.HandleBindingFailsInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 400)
 	this.So(this.response.HeaderMap.Get(contentTypeHeader), should.Equal, jsonContentType)
-	this.So(this.response.Body.String(), should.ContainSubstring, "BindingFailsInputModel")
+	this.So(this.response.Body.String(), should.Equal, `[{"Problem":"BindingFailsInputModel"}]`)
+}
+
+func (this *ModelBinderFixture) TestBindModelAndHandleError__HTTP400_DiagnosticsResponse() {
+	binder := New(this.controller.HandleBindingFailsInputModelWithDiagnostics)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 400)
+	this.So(this.response.HeaderMap.Get(contentTypeHeader), should.Equal, plaintextContentType)
+	this.So(this.response.Body.String(), should.ContainSubstring, `400 BindingFailsInputModel`)
+	this.So(this.response.Body.String(), should.ContainSubstring, "Raw Request:")
+	this.So(this.response.Body.String(), should.ContainSubstring, "/?binding=BindingInputModel") // from the URL
+	this.So(this.response.Body.String(), should.ContainSubstring, `---- DISCLAIMER ----`)
 }
 
 func (this *ModelBinderFixture) TestSanitizesModelIfAvailable() {
@@ -76,7 +87,7 @@ func (this *ModelBinderFixture) TestValidatesModelAndHandlesError__HTTP422() {
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 422)
 	this.So(this.response.HeaderMap.Get(contentTypeHeader), should.Equal, jsonContentType)
-	this.So(this.response.Body.String(), should.ContainSubstring, "ValidatingFailsInputModel")
+	this.So(this.response.Body.String(), should.Equal, `[{"Problem":"ValidatingFailsInputModel"}]`)
 }
 
 func (this *ModelBinderFixture) TestValidatesModelEmptyValidationErrors__HTTP200() {

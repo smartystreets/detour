@@ -18,6 +18,9 @@ func (this *Controller) HandleBindingInputModel(model *BindingInputModel) Render
 func (this *Controller) HandleBindingFailsInputModel(model *BindingFailsInputModel) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
+func (this *Controller) HandleBindingFailsInputModelWithDiagnostics(model *BindingFailsInputModelWithDiagnostics) Renderer {
+	panic("We shouldn't reach this point because the binding failed.")
+}
 func (this *Controller) HandleSanitizingInputModel(model *SanitizingInputModel) Renderer {
 	return &ControllerResponse{Body: model.Content}
 }
@@ -69,7 +72,17 @@ func (this *BindingInputModel) Bind(request *http.Request) error {
 type BindingFailsInputModel struct{}
 
 func (this *BindingFailsInputModel) Bind(request *http.Request) error {
-	return NewBindingValidationError("BindingFailsInputModel")
+	var errors Errors
+	errors = errors.Append(NewBindingValidationError("BindingFailsInputModel"))
+	return errors
+}
+
+/////
+
+type BindingFailsInputModelWithDiagnostics struct{}
+
+func (this *BindingFailsInputModelWithDiagnostics) Bind(request *http.Request) error {
+	return NewDiagnosticError("BindingFailsInputModel")
 }
 
 /////
@@ -107,7 +120,9 @@ func (this *ValidatingInputModel) Validate() error {
 type ValidatingFailsInputModel struct{}
 
 func (this *ValidatingFailsInputModel) Validate() error {
-	return NewBindingValidationError("ValidatingFailsInputModel")
+	var errors Errors
+	errors = errors.Append(NewBindingValidationError("ValidatingFailsInputModel"))
+	return errors
 }
 
 /////

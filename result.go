@@ -1,8 +1,11 @@
 package detour
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/http/httputil"
 )
 
 type (
@@ -14,6 +17,10 @@ type (
 		StatusCode  int
 		ContentType string
 		Content     string
+	}
+	DiagnosticResult struct {
+		StatusCode int
+		Message    string
 	}
 	BinaryResult struct {
 		StatusCode  int
@@ -55,6 +62,11 @@ func (this *ContentResult) Render(response http.ResponseWriter, request *http.Re
 	contentType := selectContentType(this.ContentType, plaintextContentType)
 	writeContentTypeAndStatusCode(response, this.StatusCode, contentType)
 	response.Write([]byte(this.Content))
+}
+
+func (this *DiagnosticResult) Render(response http.ResponseWriter, request *http.Request) {
+	message := composeErrorBody(request, this.Message, this.StatusCode)
+	http.Error(response, message, this.StatusCode)
 }
 
 func (this *BinaryResult) Render(response http.ResponseWriter, request *http.Request) {
@@ -143,5 +155,19 @@ const (
 	contentTypeHeader      = "Content-Type"
 	jsonContentType        = "application/json; charset=utf-8"
 	octetStreamContentType = "application/octet-stream"
-	plaintextContentType   = "text/plain"
+	plaintextContentType   = "text/plain; charset=utf-8"
 )
+
+///////////////////////////////////////////////////////////////////////////////
+
+// Sources for ascii art in disclaimer:
+// - http://patorjk.com/software/taag/#p=display&f=Standard&t=SmartyStreets
+// - http://www.chris.com/ascii/index.php?art=art%20and%20design/borders
+//
+// It's ok to ignore the error here. A blank disclaimer in that case isn't a show-stopper.
+var disclaimer, _ = base64.StdEncoding.DecodeString("CiAgLi0tLiAgICAgIC4tJy4gICAgICAuLS0uICAgICAgLi0tLiAgICAgIC4tLS4gICAgICAuLS0uICAgICAgLmAtLiAgICAgCjo6Ojo6Llw6Ojo6Ojo6Oi5cOjo6Ojo6OjouXDo6Ojo6Ojo6Llw6Ojo6Ojo6Oi5cOjo6Ojo6OjouXDo6Ojo6Ojo6Llw6Ojo6CicgICAgICBgLS0nICAgICAgYC4tJyAgICAgIGAtLScgICAgICBgLS0nICAgICAgYC0tJyAgICAgIGAtLicgICAgICBgLS0nCgoKICAuLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0uCiAvICAuLS4gICAgICAgICAgICAgICAgLS0tLSBESVNDTEFJTUVSIC0tLS0gICAgICAgICAgICAgICAgICAgICAuLS4gIFwKfCAgLyAgIFwgICAgIFRoZSBvdXRwdXQgeW91IHNlZSBoZXJlIGhhcyBiZWVuIGdlbmVyYXRlZCBhcyAgICAgLyAgIFwgIHwKfCB8XF8uICB8IGNvbnZlbmllbmNlIHRvIGFpZCBpbiBkZWJ1Z2dpbmcgY2xpZW50IGFwcGxpY2F0aW9ucy58ICAgIC98IHwKfFx8ICB8IC98ICBJdCBpcyBzdWJqZWN0IHRvIGNoYW5nZSB3aXRob3V0IG5vdGljZSBhbmQgZm9yIGFueSB8XCAgfCB8L3wKfCBgLS0tJyB8ICByZWFzb24uIFBsZWFzZSBwcm9ncmFtIHlvdXIgYXBwbGljYXRpb25zIHRvIGNoZWNrICB8IGAtLS0nIHwKfCAgICAgICB8ICAgdGhlIEhUVFAgU3RhdHVzIENvZGUgYW5kIG9ubHkgcGFyc2UgdGhlIGJvZHkgaW4gICB8ICAgICAgIHwKfCAgICAgICB8ICAgICBjYXNlIG9mIGEgc3RhdHVzIGNvZGUgb2YgJzIwMCcuIFRoYXQgaXMgYWxsLiAgICB8ICAgICAgIHwKfCAgICAgICB8LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS18ICAgICAgIHwKXCAgICAgICB8ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgICAgIC8KIFwgICAgIC8gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXCAgICAgLwogIGAtLS0nICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYC0tLScKCgogIC4tLS4gICAgICAuLScuICAgICAgLi0tLiAgICAgIC4tLS4gICAgICAuLS0uICAgICAgLi0tLiAgICAgIC5gLS4gICAgIAo6Ojo6Oi5cOjo6Ojo6OjouXDo6Ojo6Ojo6Llw6Ojo6Ojo6Oi5cOjo6Ojo6OjouXDo6Ojo6Ojo6Llw6Ojo6Ojo6Oi5cOjo6OgonICAgICAgYC0tJyAgICAgIGAuLScgICAgICBgLS0nICAgICAgYC0tJyAgICAgIGAtLScgICAgICBgLS4nICAgICAgYC0tJwoKCiAgX19fXyAgICAgICAgICAgICAgICAgICAgICAgXyAgICAgICAgIF9fX18gIF8gICAgICAgICAgICAgICAgIF8gICAgICAgCiAvIF9fX3wgXyBfXyBfX18gICBfXyBfIF8gX198IHxfIF8gICBfLyBfX198fCB8XyBfIF9fIF9fXyAgX19ffCB8XyBfX18gCiBcX19fIFx8ICdfIGAgXyBcIC8gX2AgfCAnX198IF9ffCB8IHwgXF9fXyBcfCBfX3wgJ19fLyBfIFwvIF8gXCBfXy8gX198CiAgX19fKSB8IHwgfCB8IHwgfCAoX3wgfCB8ICB8IHxffCB8X3wgfF9fXykgfCB8X3wgfCB8ICBfXy8gIF9fLyB8X1xfXyBcCiB8X19fXy98X3wgfF98IHxffFxfXyxffF98ICAgXF9ffFxfXywgfF9fX18vIFxfX3xffCAgXF9fX3xcX19ffFxfX3xfX18vCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHxfX18vICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgIAogICAgICAuLi4uICAgICAgICAgICAuLi4uICAgICAgICAgICAuLi4uICAgICAgICAgICAuLi4uICAgICAgICAgICAuLi4uCiAgICAgfHwgICAgICAgICAgICAgfHwgICAgICAgICAgICAgfHwgICAgICAgICAgICAgfHwgICAgICAgICAgICAgfHwKIC8iIiJsfFwgICAgICAgIC8iIiJsfFwgICAgICAgIC8iIiJsfFwgICAgICAgIC8iIiJsfFwgICAgICAgIC8iIiJsfFwKL19fX19fX19cICAgICAgL19fX19fX19cICAgICAgL19fX19fX19cICAgICAgL19fX19fX19cICAgICAgL19fX19fX19cCnwgIC4tLiAgfC0tLS0tLXwgIC4tLiAgfC0tLS0tLXwgIC4tLiAgfC0tLS0tLXwgIC4tLiAgfC0tLS0tLXwgIC4tLiAgfC0tLS0tLQogX198THxfX3wgLi0tLiAgX198THxfX3wgLi0tLiB8X198THxfX3wgLi0tLiB8X198THxfX3wgLi0tLiB8X198THxfX3wgLi0tLgpfXCAgXFxwX19gby1vJ19fXCAgXFxwX19gby1vJ19fXCAgXFxwX19gby1vJ19fXCAgXFxwX19gby1vJ19fXCAgXFxwX19gby1vJ18KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo=")
+
+func composeErrorBody(request *http.Request, message string, status int) string {
+	dump, _ := httputil.DumpRequest(request, false)
+	return fmt.Sprintf("%d %s\n\nRaw Request:\n\n%s\n\n%s", status, message, string(dump), disclaimer)
+}
