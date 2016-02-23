@@ -33,6 +33,16 @@ func (this *ResultFixture) TestStatusCodeResult() {
 	this.assertContent("Status 456")
 	this.assertHasHeader(contentTypeHeader, plaintextContentType)
 }
+func (this *ResultFixture) TestStatusCodeResult_StatusCodeDefaultsTo200() {
+	result := &StatusCodeResult{
+		StatusCode: 0,
+		Message:    "Status OK",
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(200)
+}
 
 func (this *ResultFixture) TestContentResult() {
 	result := &ContentResult{
@@ -59,6 +69,16 @@ func (this *ResultFixture) TestContentResult_WithCustomContentType() {
 	this.assertContent("Hello, World!")
 	this.assertHasHeader(contentTypeHeader, "application/custom-text")
 }
+func (this *ResultFixture) TestContentResult_StatusCodeDefaultsTo200() {
+	result := &ContentResult{
+		StatusCode: 0,
+		Content:    "Status OK",
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(http.StatusOK)
+}
 
 func (this *ResultFixture) TestBinaryResult() {
 	result := &BinaryResult{
@@ -84,6 +104,16 @@ func (this *ResultFixture) TestBinaryResult_WithCustomContentType() {
 	this.assertStatusCode(456)
 	this.assertContent("Hello, World!")
 	this.assertHasHeader(contentTypeHeader, "application/custom-binary")
+}
+func (this *ResultFixture) TestBinaryResult_StatusCodeDefaultsTo200() {
+	result := &BinaryResult{
+		StatusCode: 0,
+		Content:    []byte("Status OK"),
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(http.StatusOK)
 }
 
 func (this *ResultFixture) TestJSONResult() {
@@ -121,6 +151,16 @@ func (this *ResultFixture) TestJSONResult_SerializationFailure_HTTP500WithErrorM
 	this.assertStatusCode(500)
 	this.assertHasHeader(contentTypeHeader, jsonContentType)
 	this.assertContent(`[{"fields":["HTTP Response"],"message":"Marshal failure"}]`)
+}
+func (this *ResultFixture) TestJSONResult_StatusCodeDefaultsTo200() {
+	result := &JSONResult{
+		StatusCode: 0,
+		Content:    42,
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(http.StatusOK)
 }
 
 func (this *ResultFixture) TestValidationResult() {
@@ -163,6 +203,16 @@ func (this *ResultFixture) TestErrorResult() {
 	this.assertStatusCode(409)
 	this.assertContent(`[{"fields":["field1"],"message":"message1"},{"fields":["field2"],"message":"message2"},{"fields":["field3","field4"],"message":"message3"}]`)
 	this.assertHasHeader(contentTypeHeader, jsonContentType)
+}
+func (this *ResultFixture) TestErrorResult_StatusCodeDefaultsTo200() {
+	result := &ErrorResult{
+		StatusCode: 0,
+		Error1:    errors.New("ok"),
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(http.StatusOK)
 }
 
 func (this *ResultFixture) TestCookieResult() {

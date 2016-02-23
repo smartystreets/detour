@@ -125,7 +125,7 @@ func selectContentType(values ...string) string {
 
 func writeContentTypeAndStatusCode(response http.ResponseWriter, statusCode int, contentType string) {
 	writeContentType(response, contentType)
-	response.WriteHeader(statusCode)
+	response.WriteHeader(defaultToHTTPStatusOK(statusCode))
 }
 func writeContentType(response http.ResponseWriter, contentType string) {
 	if len(contentType) > 0 {
@@ -141,7 +141,7 @@ func serializeAndWrite(response http.ResponseWriter, statusCode int, content int
 	}
 }
 func writeContent(response http.ResponseWriter, statusCode int, content []byte) {
-	response.WriteHeader(statusCode)
+	response.WriteHeader(defaultToHTTPStatusOK(statusCode))
 	response.Write(content)
 }
 func writeError(response http.ResponseWriter) {
@@ -149,6 +149,13 @@ func writeError(response http.ResponseWriter) {
 	errContent := make(Errors, 0).Append(SimpleInputError("Marshal failure", "HTTP Response"))
 	content, _ := json.Marshal(errContent)
 	response.Write(content)
+}
+
+func defaultToHTTPStatusOK(statusCode int) int {
+	if statusCode == 0 {
+		return http.StatusOK
+	}
+	return statusCode
 }
 
 const (
