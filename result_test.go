@@ -213,6 +213,19 @@ func (this *ResultFixture) TestJSONPResult_StatusCodeDefaultsTo200() {
 
 	this.assertStatusCode(http.StatusOK)
 }
+func (this *ResultFixture) TestJSONPResult_NoCallback_SerializesAsPlainOldJSON() {
+	result := &JSONPResult{
+		StatusCode: 123,
+		Content:    map[string]string{"key": "value"},
+		CallbackLabel: "", // empty on purpose
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(123)
+	this.assertContent(`{"key":"value"}`)
+	this.assertHasHeader(contentTypeHeader, jsonContentType)
+}
 
 
 func (this *ResultFixture) TestValidationResult() {

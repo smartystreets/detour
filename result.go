@@ -1,12 +1,12 @@
 package detour
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
-	"bytes"
 )
 
 type (
@@ -153,7 +153,9 @@ func serializeAndWrite(response http.ResponseWriter, statusCode int, content int
 	}
 }
 func serializeAndWriteJSONP(response http.ResponseWriter, statusCode int, content interface{}, label string) {
-	if content, err := json.Marshal(content); err == nil {
+	if len(label) == 0 {
+		serializeAndWrite(response, statusCode, content)
+	} else if content, err := json.Marshal(content); err == nil {
 		buffer := bytes.NewBufferString(label)
 		buffer.WriteString("(")
 		buffer.Write(content)
