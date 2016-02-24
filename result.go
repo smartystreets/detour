@@ -37,7 +37,6 @@ type (
 		StatusCode    int
 		ContentType   string
 		Content       interface{}
-		CallbackLabel string
 	}
 	ValidationResult struct {
 		Failure1 error
@@ -90,7 +89,8 @@ func (this *JSONResult) Render(response http.ResponseWriter, request *http.Reque
 func (this *JSONPResult) Render(response http.ResponseWriter, request *http.Request) {
 	contentType := selectContentType(this.ContentType, jsonContentType)
 	writeContentType(response, contentType)
-	serializeAndWriteJSONP(response, this.StatusCode, this.Content, this.CallbackLabel)
+	callbackLabel := request.URL.Query().Get("callback") // We don't call request.ParseForm in every case so using the URL.Query() is safer.
+	serializeAndWriteJSONP(response, this.StatusCode, this.Content, callbackLabel)
 }
 
 func (this *ValidationResult) Render(response http.ResponseWriter, request *http.Request) {

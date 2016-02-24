@@ -13,10 +13,12 @@ type ResultFixture struct {
 	*gunit.Fixture
 
 	response *httptest2.ResponseRecorder
+	request  *http.Request
 }
 
 func (this *ResultFixture) Setup() {
 	this.response = httptest2.NewRecorder()
+	this.request, _ = http.NewRequest("GET", "/", nil)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -164,10 +166,10 @@ func (this *ResultFixture) TestJSONResult_StatusCodeDefaultsTo200() {
 }
 
 func (this *ResultFixture) TestJSONPResult() {
+	this.setRequestURLCallback("maybe")
 	result := &JSONPResult{
-		StatusCode: 123,
-		Content:    map[string]string{"key": "value"},
-		CallbackLabel: "maybe",
+		StatusCode:    123,
+		Content:       map[string]string{"key": "value"},
 	}
 
 	this.render(result)
@@ -177,11 +179,11 @@ func (this *ResultFixture) TestJSONPResult() {
 	this.assertHasHeader(contentTypeHeader, jsonContentType)
 }
 func (this *ResultFixture) TestJSONPResult_WithCustomContentType() {
+	this.setRequestURLCallback("maybe")
 	result := &JSONPResult{
-		StatusCode:  123,
-		ContentType: "application/custom-json",
-		Content:     map[string]string{"key": "value"},
-		CallbackLabel: "maybe",
+		StatusCode:    123,
+		ContentType:   "application/custom-json",
+		Content:       map[string]string{"key": "value"},
 	}
 
 	this.render(result)
@@ -191,11 +193,12 @@ func (this *ResultFixture) TestJSONPResult_WithCustomContentType() {
 	this.assertHasHeader(contentTypeHeader, "application/custom-json")
 }
 func (this *ResultFixture) TestJSONPResult_SerializationFailure_HTTP500WithErrorMessage() {
+	this.setRequestURLCallback("maybe")
 	result := &JSONPResult{
-		StatusCode: 123,
-		Content:    new(BadJSON),
-		CallbackLabel: "maybe",
+		StatusCode:    123,
+		Content:       new(BadJSON),
 	}
+
 	this.render(result)
 
 	this.assertStatusCode(500)
@@ -203,10 +206,10 @@ func (this *ResultFixture) TestJSONPResult_SerializationFailure_HTTP500WithError
 	this.assertContent(`[{"fields":["HTTP Response"],"message":"Marshal failure"}]`)
 }
 func (this *ResultFixture) TestJSONPResult_StatusCodeDefaultsTo200() {
+	this.setRequestURLCallback("maybe")
 	result := &JSONPResult{
-		StatusCode: 0,
-		Content:    42,
-		CallbackLabel: "maybe",
+		StatusCode:    0,
+		Content:       42,
 	}
 
 	this.render(result)
@@ -214,10 +217,10 @@ func (this *ResultFixture) TestJSONPResult_StatusCodeDefaultsTo200() {
 	this.assertStatusCode(http.StatusOK)
 }
 func (this *ResultFixture) TestJSONPResult_NoCallback_SerializesAsPlainOldJSON() {
+	this.setRequestURLCallback("")
 	result := &JSONPResult{
-		StatusCode: 123,
-		Content:    map[string]string{"key": "value"},
-		CallbackLabel: "", // empty on purpose
+		StatusCode:    123,
+		Content:       map[string]string{"key": "value"},
 	}
 
 	this.render(result)
@@ -226,7 +229,6 @@ func (this *ResultFixture) TestJSONPResult_NoCallback_SerializesAsPlainOldJSON()
 	this.assertContent(`{"key":"value"}`)
 	this.assertHasHeader(contentTypeHeader, jsonContentType)
 }
-
 
 func (this *ResultFixture) TestValidationResult() {
 	result := &ValidationResult{
@@ -272,7 +274,7 @@ func (this *ResultFixture) TestErrorResult() {
 func (this *ResultFixture) TestErrorResult_StatusCodeDefaultsTo200() {
 	result := &ErrorResult{
 		StatusCode: 0,
-		Error1:    errors.New("ok"),
+		Error1:     errors.New("ok"),
 	}
 
 	this.render(result)
@@ -297,8 +299,13 @@ func (this *ResultFixture) TestCookieResult() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+func (this *ResultFixture) setRequestURLCallback(value string) {
+	query := this.request.URL.Query()
+	query.Set("callback", value)
+	this.request.URL.RawQuery = query.Encode()
+}
 func (this *ResultFixture) render(result Renderer) {
-	result.Render(this.response, nil)
+	result.Render(this.response, this.request)
 }
 func (this *ResultFixture) assertStatusCode(expected int) {
 	this.So(this.response.Code, should.Equal, expected)
