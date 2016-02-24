@@ -163,6 +163,58 @@ func (this *ResultFixture) TestJSONResult_StatusCodeDefaultsTo200() {
 	this.assertStatusCode(http.StatusOK)
 }
 
+func (this *ResultFixture) TestJSONPResult() {
+	result := &JSONPResult{
+		StatusCode: 123,
+		Content:    map[string]string{"key": "value"},
+		CallbackLabel: "maybe",
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(123)
+	this.assertContent(`maybe({"key":"value"})`)
+	this.assertHasHeader(contentTypeHeader, jsonContentType)
+}
+func (this *ResultFixture) TestJSONPResult_WithCustomContentType() {
+	result := &JSONPResult{
+		StatusCode:  123,
+		ContentType: "application/custom-json",
+		Content:     map[string]string{"key": "value"},
+		CallbackLabel: "maybe",
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(123)
+	this.assertContent(`maybe({"key":"value"})`)
+	this.assertHasHeader(contentTypeHeader, "application/custom-json")
+}
+func (this *ResultFixture) TestJSONPResult_SerializationFailure_HTTP500WithErrorMessage() {
+	result := &JSONPResult{
+		StatusCode: 123,
+		Content:    new(BadJSON),
+		CallbackLabel: "maybe",
+	}
+	this.render(result)
+
+	this.assertStatusCode(500)
+	this.assertHasHeader(contentTypeHeader, jsonContentType)
+	this.assertContent(`[{"fields":["HTTP Response"],"message":"Marshal failure"}]`)
+}
+func (this *ResultFixture) TestJSONPResult_StatusCodeDefaultsTo200() {
+	result := &JSONPResult{
+		StatusCode: 0,
+		Content:    42,
+		CallbackLabel: "maybe",
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(http.StatusOK)
+}
+
+
 func (this *ResultFixture) TestValidationResult() {
 	result := &ValidationResult{
 		Failure1: SimpleInputError("message1", "field1"),

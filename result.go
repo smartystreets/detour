@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httputil"
+	"bytes"
 )
 
 type (
@@ -31,6 +32,12 @@ type (
 		StatusCode  int
 		ContentType string
 		Content     interface{}
+	}
+	JSONPResult struct {
+		StatusCode    int
+		ContentType   string
+		Content       interface{}
+		CallbackLabel string
 	}
 	ValidationResult struct {
 		Failure1 error
@@ -79,6 +86,11 @@ func (this *JSONResult) Render(response http.ResponseWriter, request *http.Reque
 	contentType := selectContentType(this.ContentType, jsonContentType)
 	writeContentType(response, contentType)
 	serializeAndWrite(response, this.StatusCode, this.Content)
+}
+func (this *JSONPResult) Render(response http.ResponseWriter, request *http.Request) {
+	contentType := selectContentType(this.ContentType, jsonContentType)
+	writeContentType(response, contentType)
+	serializeAndWriteJSONP(response, this.StatusCode, this.Content, this.CallbackLabel)
 }
 
 func (this *ValidationResult) Render(response http.ResponseWriter, request *http.Request) {
@@ -136,6 +148,17 @@ func writeContentType(response http.ResponseWriter, contentType string) {
 func serializeAndWrite(response http.ResponseWriter, statusCode int, content interface{}) {
 	if content, err := json.Marshal(content); err == nil {
 		writeContent(response, statusCode, content)
+	} else {
+		writeError(response)
+	}
+}
+func serializeAndWriteJSONP(response http.ResponseWriter, statusCode int, content interface{}, label string) {
+	if content, err := json.Marshal(content); err == nil {
+		buffer := bytes.NewBufferString(label)
+		buffer.WriteString("(")
+		buffer.Write(content)
+		buffer.WriteString(")")
+		writeContent(response, statusCode, buffer.Bytes())
 	} else {
 		writeError(response)
 	}
