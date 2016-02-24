@@ -74,6 +74,9 @@ func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http
 	this.handle(message, response, request)
 }
 
+// Install merely allows *ActionHandler to implement bitbucket.org/smartystreets/security-context/builders.NestingHandler.
+func (this *ActionHandler) Install(http.Handler) {}
+
 func (this *ActionHandler) bind(request *http.Request, message interface{}, response http.ResponseWriter) bool {
 	if err := bind(request, message); err != nil {
 		writeErrorResponse(response, request, err, http.StatusBadRequest)
