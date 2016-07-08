@@ -4,6 +4,14 @@ import "encoding/json"
 
 type Errors []error
 
+func (this Errors) AppendIf(err error, condition bool) Errors {
+	if condition {
+		return this.Append(err)
+	} else {
+		return this
+	}
+}
+
 func (this Errors) Append(err error) Errors {
 	if err != nil {
 		this = append(this, err)
