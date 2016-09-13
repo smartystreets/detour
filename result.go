@@ -18,6 +18,7 @@ type (
 		StatusCode  int
 		ContentType string
 		Content     string
+		Headers     map[string]string
 	}
 	DiagnosticResult struct {
 		StatusCode int
@@ -34,9 +35,9 @@ type (
 		Content     interface{}
 	}
 	JSONPResult struct {
-		StatusCode    int
-		ContentType   string
-		Content       interface{}
+		StatusCode  int
+		ContentType string
+		Content     interface{}
 	}
 	ValidationResult struct {
 		Failure1 error
@@ -66,6 +67,14 @@ func (this *StatusCodeResult) Render(response http.ResponseWriter, request *http
 
 func (this *ContentResult) Render(response http.ResponseWriter, request *http.Request) {
 	contentType := selectContentType(this.ContentType, plaintextContentType)
+
+	headers := response.Header()
+	for key, value := range this.Headers {
+		if len(key) > 0 {
+			headers.Set(key, value)
+		}
+	}
+
 	writeContentTypeAndStatusCode(response, this.StatusCode, contentType)
 	response.Write([]byte(this.Content))
 }

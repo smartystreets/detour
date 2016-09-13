@@ -50,6 +50,7 @@ func (this *ResultFixture) TestContentResult() {
 	result := &ContentResult{
 		StatusCode: 456,
 		Content:    "Hello, World!",
+		Headers:    map[string]string{"custom-header": "custom-value"},
 	}
 
 	this.render(result)
@@ -57,12 +58,15 @@ func (this *ResultFixture) TestContentResult() {
 	this.assertStatusCode(456)
 	this.assertContent("Hello, World!")
 	this.assertHasHeader(contentTypeHeader, plaintextContentType)
+	this.assertHasHeader("Custom-Header", "custom-value")
+	this.So(len(this.response.HeaderMap), should.Equal, 2)
 }
 func (this *ResultFixture) TestContentResult_WithCustomContentType() {
 	result := &ContentResult{
 		StatusCode:  456,
 		ContentType: "application/custom-text",
 		Content:     "Hello, World!",
+		Headers:     map[string]string{"another-header": "another-value"},
 	}
 
 	this.render(result)
@@ -70,6 +74,23 @@ func (this *ResultFixture) TestContentResult_WithCustomContentType() {
 	this.assertStatusCode(456)
 	this.assertContent("Hello, World!")
 	this.assertHasHeader(contentTypeHeader, "application/custom-text")
+	this.assertHasHeader("Another-Header", "another-value")
+	this.So(len(this.response.HeaderMap), should.Equal, 2)
+}
+func (this *ResultFixture) TestContentResult_WithCustomContentTypeListedTwice() {
+	result := &ContentResult{
+		StatusCode:  456,
+		ContentType: "application/custom-text",
+		Content:     "Hello, World!",
+		Headers:     map[string]string{"Content-Type": "ignored-content-type"},
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(456)
+	this.assertContent("Hello, World!")
+	this.assertHasHeader(contentTypeHeader, "application/custom-text")
+	this.So(len(this.response.HeaderMap), should.Equal, 1)
 }
 func (this *ResultFixture) TestContentResult_StatusCodeDefaultsTo200() {
 	result := &ContentResult{
@@ -168,8 +189,8 @@ func (this *ResultFixture) TestJSONResult_StatusCodeDefaultsTo200() {
 func (this *ResultFixture) TestJSONPResult() {
 	this.setRequestURLCallback("maybe")
 	result := &JSONPResult{
-		StatusCode:    123,
-		Content:       map[string]string{"key": "value"},
+		StatusCode: 123,
+		Content:    map[string]string{"key": "value"},
 	}
 
 	this.render(result)
@@ -181,9 +202,9 @@ func (this *ResultFixture) TestJSONPResult() {
 func (this *ResultFixture) TestJSONPResult_WithCustomContentType() {
 	this.setRequestURLCallback("maybe")
 	result := &JSONPResult{
-		StatusCode:    123,
-		ContentType:   "application/custom-json",
-		Content:       map[string]string{"key": "value"},
+		StatusCode:  123,
+		ContentType: "application/custom-json",
+		Content:     map[string]string{"key": "value"},
 	}
 
 	this.render(result)
@@ -195,8 +216,8 @@ func (this *ResultFixture) TestJSONPResult_WithCustomContentType() {
 func (this *ResultFixture) TestJSONPResult_SerializationFailure_HTTP500WithErrorMessage() {
 	this.setRequestURLCallback("maybe")
 	result := &JSONPResult{
-		StatusCode:    123,
-		Content:       new(BadJSON),
+		StatusCode: 123,
+		Content:    new(BadJSON),
 	}
 
 	this.render(result)
@@ -208,8 +229,8 @@ func (this *ResultFixture) TestJSONPResult_SerializationFailure_HTTP500WithError
 func (this *ResultFixture) TestJSONPResult_StatusCodeDefaultsTo200() {
 	this.setRequestURLCallback("maybe")
 	result := &JSONPResult{
-		StatusCode:    0,
-		Content:       42,
+		StatusCode: 0,
+		Content:    42,
 	}
 
 	this.render(result)
@@ -219,8 +240,8 @@ func (this *ResultFixture) TestJSONPResult_StatusCodeDefaultsTo200() {
 func (this *ResultFixture) TestJSONPResult_NoCallback_SerializesAsPlainOldJSON() {
 	this.setRequestURLCallback("")
 	result := &JSONPResult{
-		StatusCode:    123,
-		Content:       map[string]string{"key": "value"},
+		StatusCode: 123,
+		Content:    map[string]string{"key": "value"},
 	}
 
 	this.render(result)
