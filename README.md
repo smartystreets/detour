@@ -7,7 +7,7 @@ Rather than writing traditional http.Handlers you define input models that have
 optional Bind(), Sanitize(), and Validate() methods and which can be passed into
 methods on structs which return a Renderer. Each of these concepts is glued
 together by the library's ActionHandler struct via the New() function. See the
-example folder for a complete example.
+example folder for a complete example. Requires Go 1.7+
 
 ## Usage
 
@@ -36,6 +36,14 @@ type ActionHandler struct {
 }
 ```
 
+
+#### func (*ActionHandler) Install
+
+```go
+func (this *ActionHandler) Install(http.Handler)
+```
+Install merely allows *ActionHandler to implement
+bitbucket.org/smartystreets/security-context/builders.NestingHandler.
 
 #### func (*ActionHandler) ServeHTTP
 
@@ -76,6 +84,7 @@ type ContentResult struct {
 	StatusCode  int
 	ContentType string
 	Content     string
+	Headers     map[string]string
 }
 ```
 
@@ -111,6 +120,42 @@ type CreateModel func() interface{}
 ```
 
 
+#### type DiagnosticError
+
+```go
+type DiagnosticError struct {
+}
+```
+
+
+#### func  NewDiagnosticError
+
+```go
+func NewDiagnosticError(message string) *DiagnosticError
+```
+
+#### func (*DiagnosticError) Error
+
+```go
+func (this *DiagnosticError) Error() string
+```
+
+#### type DiagnosticResult
+
+```go
+type DiagnosticResult struct {
+	StatusCode int
+	Message    string
+}
+```
+
+
+#### func (*DiagnosticResult) Render
+
+```go
+func (this *DiagnosticResult) Render(response http.ResponseWriter, request *http.Request)
+```
+
 #### type ErrorResult
 
 ```go
@@ -143,10 +188,22 @@ type Errors []error
 func (this Errors) Append(err error) Errors
 ```
 
+#### func (Errors) AppendIf
+
+```go
+func (this Errors) AppendIf(err error, condition bool) Errors
+```
+
 #### func (Errors) Error
 
 ```go
 func (this Errors) Error() string
+```
+
+#### func (Errors) MarshalJSON
+
+```go
+func (this Errors) MarshalJSON() ([]byte, error)
 ```
 
 #### type InputError
@@ -163,6 +220,23 @@ type InputError struct {
 
 ```go
 func (this *InputError) Error() string
+```
+
+#### type JSONPResult
+
+```go
+type JSONPResult struct {
+	StatusCode  int
+	ContentType string
+	Content     interface{}
+}
+```
+
+
+#### func (*JSONPResult) Render
+
+```go
+func (this *JSONPResult) Render(response http.ResponseWriter, request *http.Request)
 ```
 
 #### type JSONResult
