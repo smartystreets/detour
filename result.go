@@ -111,7 +111,7 @@ func (this *ValidationResult) Render(response http.ResponseWriter, request *http
 	failures = failures.Append(this.Failure3)
 	failures = failures.Append(this.Failure4)
 
-	serializeAndWrite(response, httpStatusUnprocessableEntity, failures)
+	serializeAndWrite(response, http.StatusUnprocessableEntity, failures)
 }
 
 func (this *ErrorResult) Render(response http.ResponseWriter, request *http.Request) {

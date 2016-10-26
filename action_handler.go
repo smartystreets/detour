@@ -102,7 +102,7 @@ func (this *ActionHandler) sanitize(message interface{}) {
 }
 func (this *ActionHandler) validate(message interface{}, response http.ResponseWriter, request *http.Request) bool {
 	if err := validate(message); err != nil {
-		writeErrorResponse(response, request, err, httpStatusUnprocessableEntity)
+		writeErrorResponse(response, request, err, http.StatusUnprocessableEntity)
 		return false
 	}
 	return true
@@ -121,7 +121,7 @@ func validate(message interface{}) error {
 
 func (this *ActionHandler) error(message interface{}, response http.ResponseWriter) bool {
 	if server, ok := message.(ServerError); ok && server.Error() {
-		http.Error(response, internalServerErrorText, http.StatusInternalServerError)
+		http.Error(response, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return false
 	}
 	return true
@@ -147,6 +147,3 @@ func writeErrorResponse(response http.ResponseWriter, request *http.Request, err
 	result.Render(response, request)
 }
 
-const httpStatusUnprocessableEntity = 422
-
-var internalServerErrorText = http.StatusText(http.StatusInternalServerError)
