@@ -2,10 +2,15 @@ package detour
 
 import (
 	"errors"
+	"testing"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 )
+
+func TestErrorFixture(t *testing.T) {
+	gunit.Run(new(ErrorFixture), t)
+}
 
 type ErrorFixture struct {
 	*gunit.Fixture

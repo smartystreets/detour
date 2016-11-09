@@ -2,11 +2,16 @@ package detour
 
 import (
 	"net/http"
+	"testing"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/httptest2"
 )
+
+func TestModelBinderFixture(t *testing.T) {
+	gunit.Run(new(ModelBinderFixture), t)
+}
 
 type ModelBinderFixture struct {
 	*gunit.Fixture
