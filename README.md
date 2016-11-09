@@ -37,14 +37,6 @@ type ActionHandler struct {
 ```
 
 
-#### func (*ActionHandler) Install
-
-```go
-func (this *ActionHandler) Install(http.Handler)
-```
-Install merely allows *ActionHandler to implement
-bitbucket.org/smartystreets/security-context/builders.NestingHandler.
-
 #### func (*ActionHandler) ServeHTTP
 
 ```go
