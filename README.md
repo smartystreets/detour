@@ -37,6 +37,14 @@ type ActionHandler struct {
 ```
 
 
+#### func (*ActionHandler) Install
+
+```go
+func (this *ActionHandler) Install(http.Handler)
+```
+Install merely allows *ActionHandler to implement a non-public/internal,
+company-specific interface.
+
 #### func (*ActionHandler) ServeHTTP
 
 ```go
