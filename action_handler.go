@@ -146,4 +146,3 @@ func writeErrorResponse(response http.ResponseWriter, request *http.Request, err
 
 	result.Render(response, request)
 }
-
