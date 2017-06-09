@@ -15,28 +15,32 @@ func TestErrorFixture(t *testing.T) {
 type ErrorFixture struct {
 	*gunit.Fixture
 
-	problems Errors
+	problems *Errors
+}
+
+func (this *ErrorFixture) Setup() {
+	this.problems = new(Errors)
 }
 
 func (this *ErrorFixture) TestErrorAppendIf() {
-	this.problems = this.problems.AppendIf(errors.New(""), true)
-	this.problems = this.problems.AppendIf(errors.New(""), false)
-	this.problems = this.problems.AppendIf(errors.New(""), true)
-	this.problems = this.problems.AppendIf(errors.New(""), false)
-	this.So(len(this.problems), should.Equal, 2)
+	this.problems.AppendIf(errors.New(""), true)
+	this.problems.AppendIf(errors.New(""), false)
+	this.problems.AppendIf(errors.New(""), true)
+	this.problems.AppendIf(errors.New(""), false)
+	this.So(len(this.problems.errors), should.Equal, 2)
 }
 
 func (this *ErrorFixture) TestErrorAggregation() {
-	this.So(this.problems, should.BeNil)
+	this.So(this.problems.errors, should.BeNil)
 
-	this.problems = this.problems.Append(errors.New("hi"))
-	this.problems = this.problems.Append(errors.New("bye"))
+	this.problems.Append(errors.New("hi"))
+	this.problems.Append(errors.New("bye"))
 
-	this.So(len(this.problems), should.Equal, 2)
+	this.So(len(this.problems.errors), should.Equal, 2)
 }
 
 func (this *ErrorFixture) TestErrorSerialization() {
-	this.problems = this.problems.Append(SimpleInputError("Hello", "World"))
+	this.problems.Append(SimpleInputError("Hello", "World"))
 
 	this.So(this.problems.Error(), should.Equal, `[{"fields":["World"],"message":"Hello"}]`)
 }

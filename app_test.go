@@ -72,8 +72,8 @@ func (this *BindingInputModel) Bind(request *http.Request) error {
 type BindingFailsInputModel struct{}
 
 func (this *BindingFailsInputModel) Bind(request *http.Request) error {
-	var errors Errors
-	errors = errors.Append(NewBindingValidationError("BindingFailsInputModel"))
+	var errors *Errors = new(Errors)
+	errors.Append(NewBindingValidationError("BindingFailsInputModel"))
 	return errors
 }
 
@@ -120,8 +120,8 @@ func (this *ValidatingInputModel) Validate() error {
 type ValidatingFailsInputModel struct{}
 
 func (this *ValidatingFailsInputModel) Validate() error {
-	var errors Errors
-	errors = errors.Append(NewBindingValidationError("ValidatingFailsInputModel"))
+	var errors *Errors = new(Errors)
+	errors.Append(NewBindingValidationError("ValidatingFailsInputModel"))
 	return errors
 }
 
@@ -131,7 +131,7 @@ type ValidatingEmptyErrorsInputModel struct{ Content string }
 
 func (this *ValidatingEmptyErrorsInputModel) Validate() error {
 	this.Content = "ValidatingEmptyErrorsInputModel"
-	var errors Errors
+	var errors *Errors = new(Errors)
 	return errors
 }
 

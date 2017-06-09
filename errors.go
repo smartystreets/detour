@@ -2,31 +2,30 @@ package detour
 
 import "encoding/json"
 
-type Errors []error
+type Errors struct {
+	errors []error
+}
 
-func (this Errors) AppendIf(err error, condition bool) Errors {
+func (this *Errors) AppendIf(err error, condition bool) {
 	if condition {
-		return this.Append(err)
-	} else {
-		return this
+		this.Append(err)
 	}
 }
 
-func (this Errors) Append(err error) Errors {
+func (this *Errors) Append(err error) {
 	if err != nil {
-		this = append(this, err)
+		this.errors = append(this.errors, err)
 	}
-	return this
 }
 
-func (this Errors) Error() string {
+func (this *Errors) Error() string {
 	raw, _ := this.MarshalJSON()
 	return string(raw)
 }
 
-func (this Errors) MarshalJSON() ([]byte, error) {
+func (this *Errors) MarshalJSON() ([]byte, error) {
 	filtered := []error{}
-	for _, err := range this {
+	for _, err := range this.errors {
 		if err != nil {
 			filtered = append(filtered, err)
 		}

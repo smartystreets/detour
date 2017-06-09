@@ -105,11 +105,11 @@ func (this *JSONPResult) Render(response http.ResponseWriter, request *http.Requ
 func (this *ValidationResult) Render(response http.ResponseWriter, request *http.Request) {
 	writeContentType(response, jsonContentType)
 
-	var failures Errors
-	failures = failures.Append(this.Failure1)
-	failures = failures.Append(this.Failure2)
-	failures = failures.Append(this.Failure3)
-	failures = failures.Append(this.Failure4)
+	var failures *Errors = new(Errors)
+	failures.Append(this.Failure1)
+	failures.Append(this.Failure2)
+	failures.Append(this.Failure3)
+	failures.Append(this.Failure4)
 
 	serializeAndWrite(response, http.StatusUnprocessableEntity, failures)
 }
@@ -117,11 +117,11 @@ func (this *ValidationResult) Render(response http.ResponseWriter, request *http
 func (this *ErrorResult) Render(response http.ResponseWriter, request *http.Request) {
 	writeContentType(response, jsonContentType)
 
-	var failures Errors
-	failures = failures.Append(this.Error1)
-	failures = failures.Append(this.Error2)
-	failures = failures.Append(this.Error3)
-	failures = failures.Append(this.Error4)
+	var failures *Errors = new(Errors)
+	failures.Append(this.Error1)
+	failures.Append(this.Error2)
+	failures.Append(this.Error3)
+	failures.Append(this.Error4)
 
 	serializeAndWrite(response, this.StatusCode, failures)
 }
@@ -180,7 +180,8 @@ func writeContent(response http.ResponseWriter, statusCode int, content []byte) 
 }
 func writeError(response http.ResponseWriter) {
 	response.WriteHeader(http.StatusInternalServerError)
-	errContent := make(Errors, 0).Append(SimpleInputError("Marshal failure", "HTTP Response"))
+	errContent := new(Errors)
+	errContent.Append(SimpleInputError("Marshal failure", "HTTP Response"))
 	content, _ := json.Marshal(errContent)
 	response.Write(content)
 }
