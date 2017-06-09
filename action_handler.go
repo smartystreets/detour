@@ -112,7 +112,7 @@ func validate(message interface{}) error {
 		return nil
 	} else if err := validator.Validate(); err == nil {
 		return nil
-	} else if errors, ok := err.(Errors); ok && len(errors) == 0 {
+	} else if errors, ok := err.(*Errors); ok && len(errors.errors) == 0 {
 		return nil
 	} else {
 		return err
@@ -136,7 +136,7 @@ func (this *ActionHandler) handle(message interface{}, response http.ResponseWri
 func writeErrorResponse(response http.ResponseWriter, request *http.Request, err error, code int) {
 	var result Renderer
 
-	if _, ok := err.(Errors); ok {
+	if _, ok := err.(*Errors); ok {
 		result = &JSONResult{StatusCode: code, Content: err}
 	} else if _, ok := err.(*DiagnosticError); ok {
 		result = &DiagnosticResult{StatusCode: code, Message: err.Error()}
