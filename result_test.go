@@ -332,7 +332,6 @@ func (this *ResultFixture) TestRedirectResult() {
 	this.render(result)
 
 	this.assertStatusCode(http.StatusMovedPermanently)
-	this.Println(this.response.Header())
 	this.So(this.response.Header().Get("Location"), should.Equal, "http://www.google.com")
 	this.assertContent(`<a href="http://www.google.com">Moved Permanently</a>.`)
 }
