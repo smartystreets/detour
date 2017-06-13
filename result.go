@@ -58,6 +58,10 @@ type (
 		Cookie3 *http.Cookie
 		Cookie4 *http.Cookie
 	}
+	RedirectResult struct {
+		Location   string
+		StatusCode int
+	}
 )
 
 func (this *StatusCodeResult) Render(response http.ResponseWriter, request *http.Request) {
@@ -132,6 +136,10 @@ func (this *CookieResult) Render(response http.ResponseWriter, request *http.Req
 			http.SetCookie(response, cookie)
 		}
 	}
+}
+
+func (this *RedirectResult) Render(response http.ResponseWriter, request *http.Request) {
+	http.Redirect(response, request, this.Location, this.StatusCode)
 }
 
 func selectContentType(values ...string) string {

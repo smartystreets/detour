@@ -3,11 +3,11 @@ package detour
 import (
 	"errors"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
-	"github.com/smartystreets/httptest2"
 )
 
 func TestResultFixture(t *testing.T) {
@@ -17,12 +17,12 @@ func TestResultFixture(t *testing.T) {
 type ResultFixture struct {
 	*gunit.Fixture
 
-	response *httptest2.ResponseRecorder
+	response *httptest.ResponseRecorder
 	request  *http.Request
 }
 
 func (this *ResultFixture) Setup() {
-	this.response = httptest2.NewRecorder()
+	this.response = httptest.NewRecorder()
 	this.request, _ = http.NewRequest("GET", "/", nil)
 }
 
@@ -321,6 +321,20 @@ func (this *ResultFixture) TestCookieResult() {
 	this.assertStatusCode(200)
 	this.So(this.response.Header()["Set-Cookie"], should.Resemble, []string{"a=1", "b=2", "d=4"})
 	this.assertContent("")
+}
+
+func (this *ResultFixture) TestRedirectResult() {
+	result := &RedirectResult{
+		Location:   "http://www.google.com",
+		StatusCode: http.StatusMovedPermanently,
+	}
+
+	this.render(result)
+
+	this.assertStatusCode(http.StatusMovedPermanently)
+	this.Println(this.response.Header())
+	this.So(this.response.Header().Get("Location"), should.Equal, "http://www.google.com")
+	this.assertContent(`<a href="http://www.google.com">Moved Permanently</a>.`)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
