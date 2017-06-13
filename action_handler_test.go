@@ -2,11 +2,11 @@ package detour
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
-	"github.com/smartystreets/httptest2"
 )
 
 func TestModelBinderFixture(t *testing.T) {
@@ -18,13 +18,13 @@ type ModelBinderFixture struct {
 
 	controller *Controller
 	request    *http.Request
-	response   *httptest2.ResponseRecorder
+	response   *httptest.ResponseRecorder
 }
 
 func (this *ModelBinderFixture) Setup() {
 	this.controller = &Controller{}
 	this.request, _ = http.NewRequest("GET", "/?binding=BindingInputModel", nil)
-	this.response = httptest2.NewRecorder()
+	this.response = httptest.NewRecorder()
 }
 
 func (this *ModelBinderFixture) TestBasicInputModelProvidedToApplication__HTTP200() {
