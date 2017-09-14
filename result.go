@@ -64,12 +64,12 @@ type (
 	}
 )
 
-func (this *StatusCodeResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this StatusCodeResult) Render(response http.ResponseWriter, request *http.Request) {
 	writeContentTypeAndStatusCode(response, this.StatusCode, plaintextContentType)
 	response.Write([]byte(this.Message))
 }
 
-func (this *ContentResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this ContentResult) Render(response http.ResponseWriter, request *http.Request) {
 	contentType := selectContentType(this.ContentType, plaintextContentType)
 
 	headers := response.Header()
@@ -83,30 +83,30 @@ func (this *ContentResult) Render(response http.ResponseWriter, request *http.Re
 	response.Write([]byte(this.Content))
 }
 
-func (this *DiagnosticResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this DiagnosticResult) Render(response http.ResponseWriter, request *http.Request) {
 	message := composeErrorBody(request, this.Message, this.StatusCode)
 	http.Error(response, message, this.StatusCode)
 }
 
-func (this *BinaryResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this BinaryResult) Render(response http.ResponseWriter, request *http.Request) {
 	contentType := selectContentType(this.ContentType, octetStreamContentType)
 	writeContentTypeAndStatusCode(response, this.StatusCode, contentType)
 	response.Write(this.Content)
 }
 
-func (this *JSONResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this JSONResult) Render(response http.ResponseWriter, request *http.Request) {
 	contentType := selectContentType(this.ContentType, jsonContentType)
 	writeContentType(response, contentType)
 	serializeAndWrite(response, this.StatusCode, this.Content)
 }
-func (this *JSONPResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this JSONPResult) Render(response http.ResponseWriter, request *http.Request) {
 	contentType := selectContentType(this.ContentType, jsonContentType)
 	writeContentType(response, contentType)
 	callbackLabel := request.URL.Query().Get("callback") // We don't call request.ParseForm in every case so using the URL.Query() is safer.
 	serializeAndWriteJSONP(response, this.StatusCode, this.Content, callbackLabel)
 }
 
-func (this *ValidationResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this ValidationResult) Render(response http.ResponseWriter, request *http.Request) {
 	writeContentType(response, jsonContentType)
 
 	var failures Errors
@@ -118,7 +118,7 @@ func (this *ValidationResult) Render(response http.ResponseWriter, request *http
 	serializeAndWrite(response, http.StatusUnprocessableEntity, failures)
 }
 
-func (this *ErrorResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this ErrorResult) Render(response http.ResponseWriter, request *http.Request) {
 	writeContentType(response, jsonContentType)
 
 	var failures Errors
@@ -130,7 +130,7 @@ func (this *ErrorResult) Render(response http.ResponseWriter, request *http.Requ
 	serializeAndWrite(response, this.StatusCode, failures)
 }
 
-func (this *CookieResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this CookieResult) Render(response http.ResponseWriter, request *http.Request) {
 	for _, cookie := range []*http.Cookie{this.Cookie1, this.Cookie2, this.Cookie3, this.Cookie4} {
 		if cookie != nil {
 			http.SetCookie(response, cookie)
@@ -138,7 +138,7 @@ func (this *CookieResult) Render(response http.ResponseWriter, request *http.Req
 	}
 }
 
-func (this *RedirectResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this RedirectResult) Render(response http.ResponseWriter, request *http.Request) {
 	http.Redirect(response, request, this.Location, this.StatusCode)
 }
 

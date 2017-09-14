@@ -75,7 +75,7 @@ type Controller struct {
 // this package may also supply their own types that implement the Renderer interface.
 func (this *Controller) SayHello(input *SalutationInputModel) detour.Renderer {
 	// This ContentResult will be serialized to the http.ResponseWriter in ActionHandler.
-	return &detour.ContentResult{
+	return detour.ContentResult{
 		StatusCode:  http.StatusAccepted,
 		ContentType: "text/plain",
 		Content:     fmt.Sprintf("Hello, %s!", input.Name),

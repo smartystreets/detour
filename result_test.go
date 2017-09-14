@@ -29,7 +29,7 @@ func (this *ResultFixture) Setup() {
 ///////////////////////////////////////////////////////////////////////////////
 
 func (this *ResultFixture) TestStatusCodeResult() {
-	result := &StatusCodeResult{
+	result := StatusCodeResult{
 		StatusCode: 456,
 		Message:    "Status 456",
 	}
@@ -41,7 +41,7 @@ func (this *ResultFixture) TestStatusCodeResult() {
 	this.assertHasHeader(contentTypeHeader, plaintextContentType)
 }
 func (this *ResultFixture) TestStatusCodeResult_StatusCodeDefaultsTo200() {
-	result := &StatusCodeResult{
+	result := StatusCodeResult{
 		StatusCode: 0,
 		Message:    "Status OK",
 	}
@@ -52,7 +52,7 @@ func (this *ResultFixture) TestStatusCodeResult_StatusCodeDefaultsTo200() {
 }
 
 func (this *ResultFixture) TestContentResult() {
-	result := &ContentResult{
+	result := ContentResult{
 		StatusCode: 456,
 		Content:    "Hello, World!",
 		Headers:    map[string]string{"custom-header": "custom-value"},
@@ -67,7 +67,7 @@ func (this *ResultFixture) TestContentResult() {
 	this.So(len(this.response.HeaderMap), should.Equal, 2)
 }
 func (this *ResultFixture) TestContentResult_WithCustomContentType() {
-	result := &ContentResult{
+	result := ContentResult{
 		StatusCode:  456,
 		ContentType: "application/custom-text",
 		Content:     "Hello, World!",
@@ -83,7 +83,7 @@ func (this *ResultFixture) TestContentResult_WithCustomContentType() {
 	this.So(len(this.response.HeaderMap), should.Equal, 2)
 }
 func (this *ResultFixture) TestContentResult_WithCustomContentTypeListedTwice() {
-	result := &ContentResult{
+	result := ContentResult{
 		StatusCode:  456,
 		ContentType: "application/custom-text",
 		Content:     "Hello, World!",
@@ -98,7 +98,7 @@ func (this *ResultFixture) TestContentResult_WithCustomContentTypeListedTwice() 
 	this.So(len(this.response.HeaderMap), should.Equal, 1)
 }
 func (this *ResultFixture) TestContentResult_StatusCodeDefaultsTo200() {
-	result := &ContentResult{
+	result := ContentResult{
 		StatusCode: 0,
 		Content:    "Status OK",
 	}
@@ -109,7 +109,7 @@ func (this *ResultFixture) TestContentResult_StatusCodeDefaultsTo200() {
 }
 
 func (this *ResultFixture) TestBinaryResult() {
-	result := &BinaryResult{
+	result := BinaryResult{
 		StatusCode: 456,
 		Content:    []byte("Hello, World!"),
 	}
@@ -121,7 +121,7 @@ func (this *ResultFixture) TestBinaryResult() {
 	this.assertHasHeader(contentTypeHeader, octetStreamContentType)
 }
 func (this *ResultFixture) TestBinaryResult_WithCustomContentType() {
-	result := &BinaryResult{
+	result := BinaryResult{
 		StatusCode:  456,
 		ContentType: "application/custom-binary",
 		Content:     []byte("Hello, World!"),
@@ -134,7 +134,7 @@ func (this *ResultFixture) TestBinaryResult_WithCustomContentType() {
 	this.assertHasHeader(contentTypeHeader, "application/custom-binary")
 }
 func (this *ResultFixture) TestBinaryResult_StatusCodeDefaultsTo200() {
-	result := &BinaryResult{
+	result := BinaryResult{
 		StatusCode: 0,
 		Content:    []byte("Status OK"),
 	}
@@ -145,7 +145,7 @@ func (this *ResultFixture) TestBinaryResult_StatusCodeDefaultsTo200() {
 }
 
 func (this *ResultFixture) TestJSONResult() {
-	result := &JSONResult{
+	result := JSONResult{
 		StatusCode: 123,
 		Content:    map[string]string{"key": "value"},
 	}
@@ -157,7 +157,7 @@ func (this *ResultFixture) TestJSONResult() {
 	this.assertHasHeader(contentTypeHeader, jsonContentType)
 }
 func (this *ResultFixture) TestJSONResult_WithCustomContentType() {
-	result := &JSONResult{
+	result := JSONResult{
 		StatusCode:  123,
 		ContentType: "application/custom-json",
 		Content:     map[string]string{"key": "value"},
@@ -170,7 +170,7 @@ func (this *ResultFixture) TestJSONResult_WithCustomContentType() {
 	this.assertHasHeader(contentTypeHeader, "application/custom-json")
 }
 func (this *ResultFixture) TestJSONResult_SerializationFailure_HTTP500WithErrorMessage() {
-	result := &JSONResult{
+	result := JSONResult{
 		StatusCode: 123,
 		Content:    new(BadJSON),
 	}
@@ -181,7 +181,7 @@ func (this *ResultFixture) TestJSONResult_SerializationFailure_HTTP500WithErrorM
 	this.assertContent(`[{"fields":["HTTP Response"],"message":"Marshal failure"}]`)
 }
 func (this *ResultFixture) TestJSONResult_StatusCodeDefaultsTo200() {
-	result := &JSONResult{
+	result := JSONResult{
 		StatusCode: 0,
 		Content:    42,
 	}
@@ -193,7 +193,7 @@ func (this *ResultFixture) TestJSONResult_StatusCodeDefaultsTo200() {
 
 func (this *ResultFixture) TestJSONPResult() {
 	this.setRequestURLCallback("maybe")
-	result := &JSONPResult{
+	result := JSONPResult{
 		StatusCode: 123,
 		Content:    map[string]string{"key": "value"},
 	}
@@ -206,7 +206,7 @@ func (this *ResultFixture) TestJSONPResult() {
 }
 func (this *ResultFixture) TestJSONPResult_WithCustomContentType() {
 	this.setRequestURLCallback("maybe")
-	result := &JSONPResult{
+	result := JSONPResult{
 		StatusCode:  123,
 		ContentType: "application/custom-json",
 		Content:     map[string]string{"key": "value"},
@@ -220,7 +220,7 @@ func (this *ResultFixture) TestJSONPResult_WithCustomContentType() {
 }
 func (this *ResultFixture) TestJSONPResult_SerializationFailure_HTTP500WithErrorMessage() {
 	this.setRequestURLCallback("maybe")
-	result := &JSONPResult{
+	result := JSONPResult{
 		StatusCode: 123,
 		Content:    new(BadJSON),
 	}
@@ -233,7 +233,7 @@ func (this *ResultFixture) TestJSONPResult_SerializationFailure_HTTP500WithError
 }
 func (this *ResultFixture) TestJSONPResult_StatusCodeDefaultsTo200() {
 	this.setRequestURLCallback("maybe")
-	result := &JSONPResult{
+	result := JSONPResult{
 		StatusCode: 0,
 		Content:    42,
 	}
@@ -244,7 +244,7 @@ func (this *ResultFixture) TestJSONPResult_StatusCodeDefaultsTo200() {
 }
 func (this *ResultFixture) TestJSONPResult_NoCallback_SerializesAsPlainOldJSON() {
 	this.setRequestURLCallback("")
-	result := &JSONPResult{
+	result := JSONPResult{
 		StatusCode: 123,
 		Content:    map[string]string{"key": "value"},
 	}
@@ -257,7 +257,7 @@ func (this *ResultFixture) TestJSONPResult_NoCallback_SerializesAsPlainOldJSON()
 }
 
 func (this *ResultFixture) TestValidationResult() {
-	result := &ValidationResult{
+	result := ValidationResult{
 		Failure1: SimpleInputError("message1", "field1"),
 		Failure2: SimpleInputError("message2", "field2"),
 		Failure3: nil,
@@ -271,7 +271,7 @@ func (this *ResultFixture) TestValidationResult() {
 	this.assertHasHeader(contentTypeHeader, jsonContentType)
 }
 func (this *ResultFixture) TestValidationResult_SerializationFailure_HTTP500WithErrorMessage() {
-	result := &ValidationResult{
+	result := ValidationResult{
 		Failure1: new(BadJSON),
 	}
 
@@ -283,7 +283,7 @@ func (this *ResultFixture) TestValidationResult_SerializationFailure_HTTP500With
 }
 
 func (this *ResultFixture) TestErrorResult() {
-	result := &ErrorResult{
+	result := ErrorResult{
 		StatusCode: 409,
 		Error1:     SimpleInputError("message1", "field1"),
 		Error2:     SimpleInputError("message2", "field2"),
@@ -298,7 +298,7 @@ func (this *ResultFixture) TestErrorResult() {
 	this.assertHasHeader(contentTypeHeader, jsonContentType)
 }
 func (this *ResultFixture) TestErrorResult_StatusCodeDefaultsTo200() {
-	result := &ErrorResult{
+	result := ErrorResult{
 		StatusCode: 0,
 		Error1:     errors.New("ok"),
 	}
@@ -309,7 +309,7 @@ func (this *ResultFixture) TestErrorResult_StatusCodeDefaultsTo200() {
 }
 
 func (this *ResultFixture) TestCookieResult() {
-	result := &CookieResult{
+	result := CookieResult{
 		Cookie1: &http.Cookie{Name: "a", Value: "1"},
 		Cookie2: &http.Cookie{Name: "b", Value: "2"},
 		Cookie3: nil,
@@ -324,7 +324,7 @@ func (this *ResultFixture) TestCookieResult() {
 }
 
 func (this *ResultFixture) TestRedirectResult() {
-	result := &RedirectResult{
+	result := RedirectResult{
 		Location:   "http://www.google.com",
 		StatusCode: http.StatusMovedPermanently,
 	}
