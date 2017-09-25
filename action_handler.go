@@ -90,8 +90,12 @@ func bind(request *http.Request, message interface{}) error {
 		return nil
 	} else if err := request.ParseForm(); err != nil {
 		return err
+	} else if err = binder.Bind(request); err == nil {
+		return nil
+	} else if errors, ok := err.(Errors); ok && len(errors) == 0 {
+		return nil
 	} else {
-		return binder.Bind(request)
+		return err
 	}
 }
 

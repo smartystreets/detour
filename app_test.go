@@ -18,6 +18,9 @@ func (this *Controller) HandleBindingInputModel(model *BindingInputModel) Render
 func (this *Controller) HandleBindingFailsInputModel(model *BindingFailsInputModel) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
+func (this *Controller) HandleBindingEmptyErrorsInputModel(model *BindingEmptyErrorsInputModel) Renderer {
+	return &ControllerResponse{}
+}
 func (this *Controller) HandleBindingFailsInputModelWithDiagnostics(model *BindingFailsInputModelWithDiagnostics) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
@@ -65,6 +68,16 @@ type BindingInputModel struct {
 func (this *BindingInputModel) Bind(request *http.Request) error {
 	this.Content = request.Form.Get("binding")
 	return nil
+}
+
+/////
+
+type BindingEmptyErrorsInputModel struct {
+}
+
+func (this *BindingEmptyErrorsInputModel) Bind(request *http.Request) error {
+	var errors Errors
+	return errors
 }
 
 /////

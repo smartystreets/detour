@@ -62,6 +62,12 @@ func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400_JSONRespo
 	this.So(this.response.Body.String(), should.Equal, `[{"Problem":"BindingFailsInputModel"}]`)
 }
 
+func (this *ModelBinderFixture) TestBindsModelAndHandlesNilErrors() {
+	binder := New(this.controller.HandleBindingEmptyErrorsInputModel)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 200)
+}
+
 func (this *ModelBinderFixture) TestBindModelAndHandleError__HTTP400_DiagnosticsResponse() {
 	binder := New(this.controller.HandleBindingFailsInputModelWithDiagnostics)
 	binder.ServeHTTP(this.response, this.request)
