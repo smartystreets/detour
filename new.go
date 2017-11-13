@@ -17,9 +17,9 @@ func New(controllerAction interface{}) http.Handler {
 		return simple(controllerAction.(func() Renderer))
 	}
 
-	modelElement := modelType.Elem() // do not inline into factory callback method
-	var factory createModel = func() interface{} { return reflect.New(modelElement).Interface() }
-	return withFactory(controllerAction, factory)
+	return withFactory(controllerAction, func() interface{} {
+		return reflect.New(modelType.Elem()).Interface()
+	})
 }
 
 func withFactory(controllerAction interface{}, input createModel) http.Handler {
