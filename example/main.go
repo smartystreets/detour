@@ -67,14 +67,14 @@ type Controller struct {
 }
 
 // SayHello is a controller action that, when called by the ServeHTTP method of
-// the library's ActionHandler will receive a SalutationInputModel. By this time the
+// the library's actionHandler will receive a SalutationInputModel. By this time the
 // input's Bind(), Sanitize(), Validate(), and Error() methods will have already
 // been called. The returned detour.Renderer will be written to the actual
-// http.ResponseWriter by the ServeHTTP method of the ActionHandler. The detour
+// http.ResponseWriter by the ServeHTTP method of the actionHandler. The detour
 // package provides various types that implement the Renderer interface. Users of
 // this package may also supply their own types that implement the Renderer interface.
 func (this *Controller) SayHello(input *SalutationInputModel) detour.Renderer {
-	// This ContentResult will be serialized to the http.ResponseWriter in ActionHandler.
+	// This ContentResult will be serialized to the http.ResponseWriter in actionHandler.
 	return detour.ContentResult{
 		StatusCode:  http.StatusAccepted,
 		ContentType: "text/plain",
@@ -97,7 +97,7 @@ type SalutationInputModel struct {
 // Implementing this method is optional (but the only way to get information
 // from the request onto the input model).
 func (this *SalutationInputModel) Bind(request *http.Request) error {
-	// request.ParseForm() will have already been called in ActionHandler.
+	// request.ParseForm() will have already been called in actionHandler.
 	this.Name = request.Form.Get("name")
 	return nil
 }

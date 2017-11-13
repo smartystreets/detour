@@ -25,7 +25,7 @@ func (this Errors) Error() string {
 }
 
 func (this Errors) MarshalJSON() ([]byte, error) {
-	filtered := []error{}
+	var filtered []error
 	for _, err := range this {
 		if err != nil {
 			filtered = append(filtered, err)
