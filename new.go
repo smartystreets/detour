@@ -22,16 +22,6 @@ func New(controllerAction interface{}) http.Handler {
 	return withFactory(controllerAction, factory)
 }
 
-func New2(controllerAction interface{}) http.Handler {
-	modelType := identifyInputModelArgumentType(controllerAction)
-	if modelType == nil {
-		return simple(controllerAction.(func() Renderer))
-	}
-
-	var factory createModel = func() interface{} { return reflect.New(modelType.Elem()).Interface() }
-	return withFactory(controllerAction, factory)
-}
-
 func withFactory(controllerAction interface{}, input createModel) http.Handler {
 	callbackType := reflect.ValueOf(controllerAction)
 	var callback monadicAction = func(m interface{}) Renderer {
