@@ -3,10 +3,12 @@ package detour
 import "net/http"
 
 type (
-	CreateModel   func() interface{}
-	MonadicAction func(interface{}) Renderer
-	NiladicAction func() Renderer
+	createModel   func() interface{}
+	monadicAction func(interface{}) Renderer
+	niladicAction func() Renderer
+)
 
+type (
 	Binder interface {
 		Bind(*http.Request) error
 	}
