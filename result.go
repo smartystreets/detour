@@ -9,64 +9,25 @@ import (
 	"net/http/httputil"
 )
 
-type (
-	StatusCodeResult struct {
-		StatusCode int
-		Message    string
-	}
-	ContentResult struct {
-		StatusCode  int
-		ContentType string
-		Content     string
-		Headers     map[string]string
-	}
-	DiagnosticResult struct {
-		StatusCode int
-		Message    string
-	}
-	BinaryResult struct {
-		StatusCode  int
-		ContentType string
-		Content     []byte
-	}
-	JSONResult struct {
-		StatusCode  int
-		ContentType string
-		Content     interface{}
-	}
-	JSONPResult struct {
-		StatusCode  int
-		ContentType string
-		Content     interface{}
-	}
-	ValidationResult struct {
-		Failure1 error
-		Failure2 error
-		Failure3 error
-		Failure4 error
-	}
-	ErrorResult struct {
-		StatusCode int
-		Error1     error
-		Error2     error
-		Error3     error
-		Error4     error
-	}
-	CookieResult struct {
-		Cookie1 *http.Cookie
-		Cookie2 *http.Cookie
-		Cookie3 *http.Cookie
-		Cookie4 *http.Cookie
-	}
-	RedirectResult struct {
-		Location   string
-		StatusCode int
-	}
-)
+//////////////////////////////////////////////////////////////////////////////
+
+type StatusCodeResult struct {
+	StatusCode int
+	Message    string
+}
 
 func (this StatusCodeResult) Render(response http.ResponseWriter, request *http.Request) {
 	writeContentTypeAndStatusCode(response, this.StatusCode, plaintextContentType)
 	response.Write([]byte(this.Message))
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+type ContentResult struct {
+	StatusCode  int
+	ContentType string
+	Content     string
+	Headers     map[string]string
 }
 
 func (this ContentResult) Render(response http.ResponseWriter, request *http.Request) {
@@ -83,9 +44,24 @@ func (this ContentResult) Render(response http.ResponseWriter, request *http.Req
 	response.Write([]byte(this.Content))
 }
 
+//////////////////////////////////////////////////////////////////////////////
+
+type DiagnosticResult struct {
+	StatusCode int
+	Message    string
+}
+
 func (this DiagnosticResult) Render(response http.ResponseWriter, request *http.Request) {
 	message := composeErrorBody(request, this.Message, this.StatusCode)
 	http.Error(response, message, this.StatusCode)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+type BinaryResult struct {
+	StatusCode  int
+	ContentType string
+	Content     []byte
 }
 
 func (this BinaryResult) Render(response http.ResponseWriter, request *http.Request) {
@@ -94,16 +70,42 @@ func (this BinaryResult) Render(response http.ResponseWriter, request *http.Requ
 	response.Write(this.Content)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+
+type JSONResult struct {
+	StatusCode  int
+	ContentType string
+	Content     interface{}
+}
+
 func (this JSONResult) Render(response http.ResponseWriter, request *http.Request) {
 	contentType := selectContentType(this.ContentType, jsonContentType)
 	writeContentType(response, contentType)
 	serializeAndWrite(response, this.StatusCode, this.Content)
 }
+
+//////////////////////////////////////////////////////////////////////////////
+
+type JSONPResult struct {
+	StatusCode  int
+	ContentType string
+	Content     interface{}
+}
+
 func (this JSONPResult) Render(response http.ResponseWriter, request *http.Request) {
 	contentType := selectContentType(this.ContentType, jsonContentType)
 	writeContentType(response, contentType)
 	callbackLabel := request.URL.Query().Get("callback") // We don't call request.ParseForm in every case so using the URL.Query() is safer.
 	serializeAndWriteJSONP(response, this.StatusCode, this.Content, callbackLabel)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+type ValidationResult struct {
+	Failure1 error
+	Failure2 error
+	Failure3 error
+	Failure4 error
 }
 
 func (this ValidationResult) Render(response http.ResponseWriter, request *http.Request) {
@@ -118,6 +120,16 @@ func (this ValidationResult) Render(response http.ResponseWriter, request *http.
 	serializeAndWrite(response, http.StatusUnprocessableEntity, failures)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+
+type ErrorResult struct {
+	StatusCode int
+	Error1     error
+	Error2     error
+	Error3     error
+	Error4     error
+}
+
 func (this ErrorResult) Render(response http.ResponseWriter, request *http.Request) {
 	writeContentType(response, jsonContentType)
 
@@ -130,6 +142,15 @@ func (this ErrorResult) Render(response http.ResponseWriter, request *http.Reque
 	serializeAndWrite(response, this.StatusCode, failures)
 }
 
+//////////////////////////////////////////////////////////////////////////////
+
+type CookieResult struct {
+	Cookie1 *http.Cookie
+	Cookie2 *http.Cookie
+	Cookie3 *http.Cookie
+	Cookie4 *http.Cookie
+}
+
 func (this CookieResult) Render(response http.ResponseWriter, request *http.Request) {
 	for _, cookie := range []*http.Cookie{this.Cookie1, this.Cookie2, this.Cookie3, this.Cookie4} {
 		if cookie != nil {
@@ -138,9 +159,18 @@ func (this CookieResult) Render(response http.ResponseWriter, request *http.Requ
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////////
+
+type RedirectResult struct {
+	Location   string
+	StatusCode int
+}
+
 func (this RedirectResult) Render(response http.ResponseWriter, request *http.Request) {
 	http.Redirect(response, request, this.Location, this.StatusCode)
 }
+
+//////////////////////////////////////////////////////////////////////////////
 
 func selectContentType(values ...string) string {
 	for _, value := range values {
