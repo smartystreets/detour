@@ -18,5 +18,6 @@ func (this ValidationResult) Render(response http.ResponseWriter, request *http.
 	failures = failures.Append(this.Failure3)
 	failures = failures.Append(this.Failure4)
 
-	serializeAndWrite(response, http.StatusUnprocessableEntity, failures)
+	content, err := serializeJSON(failures, "")
+	writeResponse(response, http.StatusUnprocessableEntity, content, err)
 }

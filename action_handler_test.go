@@ -59,7 +59,7 @@ func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400_JSONRespo
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 400)
 	this.So(this.response.HeaderMap.Get(contentTypeHeader), should.Equal, jsonContentType)
-	this.So(this.response.Body.String(), should.Equal, `[{"Problem":"BindingFailsInputModel"}]`)
+	this.So(this.response.Body.String(), should.EqualTrimSpace, `[{"Problem":"BindingFailsInputModel"}]`)
 }
 
 func (this *ModelBinderFixture) TestBindsModelAndHandlesNilErrors() {
@@ -98,7 +98,7 @@ func (this *ModelBinderFixture) TestValidatesModelAndHandlesError__HTTP422() {
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 422)
 	this.So(this.response.HeaderMap.Get(contentTypeHeader), should.Equal, jsonContentType)
-	this.So(this.response.Body.String(), should.Equal, `[{"Problem":"ValidatingFailsInputModel"}]`)
+	this.So(this.response.Body.String(), should.EqualTrimSpace, `[{"Problem":"ValidatingFailsInputModel"}]`)
 }
 
 func (this *ModelBinderFixture) TestValidatesModelEmptyValidationErrors__HTTP200() {

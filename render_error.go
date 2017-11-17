@@ -19,5 +19,6 @@ func (this ErrorResult) Render(response http.ResponseWriter, request *http.Reque
 	failures = failures.Append(this.Error3)
 	failures = failures.Append(this.Error4)
 
-	serializeAndWrite(response, this.StatusCode, failures)
+	content, err := serializeJSON(failures, "")
+	writeResponse(response, this.StatusCode, content, err)
 }

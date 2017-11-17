@@ -20,40 +20,40 @@ func writeContentTypeAndStatusCode(response http.ResponseWriter, statusCode int,
 	writeContentType(response, contentType)
 	response.WriteHeader(orOK(statusCode))
 }
+
 func writeContentType(response http.ResponseWriter, contentType string) {
 	if len(contentType) > 0 {
 		response.Header().Set(contentTypeHeader, contentType) // doesn't get written unless status code is written last!
 	}
 }
+func serializeJSON(content interface{}, indent string) ([]byte, error) {
+	writer := new(bytes.Buffer)
+	encoder := json.NewEncoder(writer)
+	encoder.SetIndent("", indent)
+	if err := encoder.Encode(content); err != nil {
+		return nil, err
+	} else {
+		return writer.Bytes(), nil
+	}
+}
 
-func serializeAndWrite(response http.ResponseWriter, statusCode int, content interface{}) {
-	if serialized, err := json.Marshal(content); err == nil {
-		writeContent(response, statusCode, serialized)
+func writeResponse(response http.ResponseWriter, statusCode int, content []byte, previous error) {
+	if previous == nil {
+		writeContent(response, statusCode, content)
 	} else {
 		writeInternalServerError(response)
 	}
 }
-func serializeAndWriteJSONP(response http.ResponseWriter, statusCode int, content interface{}, label string) {
-	if len(label) == 0 {
-		serializeAndWrite(response, statusCode, content)
-	} else if serialized, err := json.Marshal(content); err == nil {
-		buffer := bytes.NewBufferString(label)
-		buffer.WriteString("(")
-		buffer.Write(serialized)
-		buffer.WriteString(")")
-		writeContent(response, statusCode, buffer.Bytes())
-	} else {
-		writeInternalServerError(response)
-	}
-}
+
 func writeContent(response http.ResponseWriter, statusCode int, content []byte) {
 	response.WriteHeader(orOK(statusCode))
 	response.Write(content)
 }
+
 func writeInternalServerError(response http.ResponseWriter) {
 	response.WriteHeader(http.StatusInternalServerError)
 	errContent := make(Errors, 0).Append(SimpleInputError("Marshal failure", "HTTP Response"))
-	content, _ := json.Marshal(errContent)
+	content, _ := serializeJSON(errContent, "")
 	response.Write(content)
 }
 
