@@ -10,14 +10,11 @@ type ValidationResult struct {
 }
 
 func (this ValidationResult) Render(response http.ResponseWriter, request *http.Request) {
-	writeContentType(response, jsonContentType)
-
 	var failures Errors
 	failures = failures.Append(this.Failure1)
 	failures = failures.Append(this.Failure2)
 	failures = failures.Append(this.Failure3)
 	failures = failures.Append(this.Failure4)
 
-	content, err := serializeJSON(failures, "")
-	writeResponse(response, http.StatusUnprocessableEntity, content, err)
+	writeJSONResponse(response, http.StatusUnprocessableEntity, failures, jsonContentType, "")
 }

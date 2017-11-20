@@ -16,6 +16,12 @@ func firstNonBlank(values ...string) string {
 	return ""
 }
 
+func writeJSONResponse(response http.ResponseWriter, statusCode int, content interface{}, contentType, indent string) {
+	writeContentType(response, contentType)
+	serialized, err := serializeJSON(content, indent)
+	writeResponse(response, statusCode, serialized, err)
+}
+
 func writeContentTypeAndStatusCode(response http.ResponseWriter, statusCode int, contentType string) {
 	writeContentType(response, contentType)
 	response.WriteHeader(orOK(statusCode))
@@ -26,6 +32,7 @@ func writeContentType(response http.ResponseWriter, contentType string) {
 		response.Header().Set(contentTypeHeader, contentType) // doesn't get written unless status code is written last!
 	}
 }
+
 func serializeJSON(content interface{}, indent string) ([]byte, error) {
 	writer := new(bytes.Buffer)
 	encoder := json.NewEncoder(writer)
