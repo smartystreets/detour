@@ -6,16 +6,6 @@ import (
 	"net/http"
 )
 
-func firstNonBlank(values ...string) string {
-	for _, value := range values {
-		if len(value) > 0 {
-			return value
-		}
-	}
-
-	return ""
-}
-
 func writeJSONResponse(response http.ResponseWriter, statusCode int, content interface{}, contentType, indent string) {
 	writeContentType(response, contentType)
 	serialized, err := serializeJSON(content, indent)
@@ -69,6 +59,16 @@ func orOK(statusCode int) int {
 		return http.StatusOK
 	}
 	return statusCode
+}
+
+func firstNonBlank(values ...string) string {
+	for _, value := range values {
+		if len(value) > 0 {
+			return value
+		}
+	}
+
+	return ""
 }
 
 const (
