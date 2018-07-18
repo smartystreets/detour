@@ -46,7 +46,8 @@ func CompoundInputError(message string, fields ...string) error {
 	return &InputError{Fields: fields, Message: message}
 }
 func (this *InputError) Error() string {
-	return this.Message
+	raw, _ := json.Marshal(this)
+	return string(raw)
 }
 
 ///////////////////////////////////////////////////////////////////////////////

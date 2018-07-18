@@ -40,3 +40,9 @@ func (this *ErrorFixture) TestErrorSerialization() {
 
 	this.So(this.problems.Error(), should.Equal, `[{"fields":["World"],"message":"Hello"}]`)
 }
+
+func (this *ErrorFixture) TestInputErrorMarshaled() {
+	err := &InputError{HTTPStatusCode: 400, Message: "Message", Fields: []string{"Field1"}}
+	rendered := err.Error()
+	this.So(rendered, should.Equal, `{"fields":["Field1"],"message":"Message"}`)
+}
