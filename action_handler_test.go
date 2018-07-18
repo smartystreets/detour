@@ -23,7 +23,7 @@ type ModelBinderFixture struct {
 
 func (this *ModelBinderFixture) Setup() {
 	this.controller = &Controller{}
-	this.request, _ = http.NewRequest("GET", "/?binding=BindingInputModel", nil)
+	this.request = httptest.NewRequest("GET", "/?binding=BindingInputModel", nil)
 	this.response = httptest.NewRecorder()
 }
 

@@ -23,7 +23,7 @@ type ResultFixture struct {
 
 func (this *ResultFixture) Setup() {
 	this.response = httptest.NewRecorder()
-	this.request, _ = http.NewRequest("GET", "/", nil)
+	this.request = httptest.NewRequest("GET", "/", nil)
 }
 
 func (this *ResultFixture) setRequestURLCallback(value string) {
