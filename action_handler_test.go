@@ -48,8 +48,8 @@ func (this *ModelBinderFixture) TestBindsModelForApplication__HTTP200() {
 }
 
 func (this *ModelBinderFixture) TestBindsFormParseFails__HTTP400() {
+	this.request = httptest.NewRequest("GET", "/?asdf=%%%%%", nil)
 	binder := New(this.controller.HandleBindingInputModel)
-	this.request.Method = "PUT"
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusBadRequest)
 }
