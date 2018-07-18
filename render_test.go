@@ -54,3 +54,11 @@ type BadJSON struct{}
 
 func (this *BadJSON) Error() string                { return "Implement the error interface." }
 func (this *BadJSON) MarshalJSON() ([]byte, error) { return nil, errors.New("GOPHERS!") }
+
+///////////////////////////////////////////////////////////////////////////////
+
+func TestFirstNonBlank_WhenAllBlank_ReturnDefaultOfBlank(t *testing.T) {
+	if actual := firstNonBlank("", "", ""); actual != "" {
+		t.Error("Failed, expected '', got:", actual)
+	}
+}
