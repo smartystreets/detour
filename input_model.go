@@ -1,6 +1,7 @@
 package detour
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 )
@@ -24,8 +25,10 @@ func prepareInputModel(model interface{}, request *http.Request) (statusCode int
 }
 
 func bind(request *http.Request, message interface{}) error {
-	// FUTURE: if request has a Body (PUT/POST) and Content-Type: application/json
-	if binder, isBinder := message.(Binder); !isBinder {
+	if isJSON(request) {
+		return json.NewDecoder(request.Body).Decode(&message)
+	}
+
 		return nil
 	} else if err := request.ParseForm(); err != nil {
 		return err
@@ -36,6 +39,10 @@ func bind(request *http.Request, message interface{}) error {
 	} else {
 		return err
 	}
+
+func isJSON(request *http.Request) bool {
+	return (request.Method == "POST" || request.Method == "PUT") &&
+		strings.Contains(request.Header.Get("Content-Type"), "/json")
 }
 
 func sanitize(message interface{}) {

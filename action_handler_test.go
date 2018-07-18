@@ -79,6 +79,31 @@ func (this *ModelBinderFixture) TestBindModelAndHandleError__HTTP400_Diagnostics
 	this.So(this.response.Body.String(), should.ContainSubstring, `---- DISCLAIMER ----`)
 }
 
+func (this *ModelBinderFixture) TestBindFromJSONPost() {
+	this.request = httptest.NewRequest("POST", "/", strings.NewReader(`{"content": "Hello, World!"}`))
+	this.request.Header.Set("Content-Type", "application/json")
+	binder := New(this.controller.HandleBindingFromJSON)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 200)
+	this.So(this.response.Body.String(), should.ContainSubstring, "Hello, World!")
+}
+func (this *ModelBinderFixture) TestBindFromJSONPut() {
+	this.request = httptest.NewRequest("PUT", "/", strings.NewReader(`{"content": "Hello, World!"}`))
+	this.request.Header.Set("Content-Type", "application/json")
+	binder := New(this.controller.HandleBindingFromJSON)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 200)
+	this.So(this.response.Body.String(), should.ContainSubstring, "Hello, World!")
+}
+func (this *ModelBinderFixture) TestBindFromJSON_Malformed() {
+	this.request = httptest.NewRequest("PUT", "/", strings.NewReader(`{I can haz JSONs}`))
+	this.request.Header.Set("Content-Type", "application/json")
+	binder := New(this.controller.HandleBindingFromJSON)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 400)
+	this.So(this.response.Body.String(), should.ContainSubstring, "invalid character")
+}
+
 func (this *ModelBinderFixture) TestSanitizesModelIfAvailable() {
 	sanitizer := New(this.controller.HandleSanitizingInputModel)
 	sanitizer.ServeHTTP(this.response, this.request)
