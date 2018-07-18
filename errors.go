@@ -34,9 +34,19 @@ func (this Errors) MarshalJSON() ([]byte, error) {
 	return json.Marshal(filtered)
 }
 
+func (this Errors) StatusCode() int {
+	for _, err := range this {
+		if code, ok := err.(ErrorCode); ok {
+			return code.StatusCode()
+		}
+	}
+	return 0
+}
+
 type InputError struct {
-	Fields  []string `json:"fields"`
-	Message string   `json:"message"`
+	Fields         []string `json:"fields"`
+	Message        string   `json:"message"`
+	HTTPStatusCode int      `json:"-"`
 }
 
 func SimpleInputError(message, field string) error {
@@ -50,10 +60,15 @@ func (this *InputError) Error() string {
 	return string(raw)
 }
 
+func (this *InputError) StatusCode() int {
+	return this.HTTPStatusCode
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 type DiagnosticError struct {
-	message string
+	message        string
+	HTTPStatusCode int
 }
 
 func NewDiagnosticError(message string) *DiagnosticError {
@@ -62,4 +77,8 @@ func NewDiagnosticError(message string) *DiagnosticError {
 
 func (this *DiagnosticError) Error() string {
 	return this.message
+}
+
+func (this *DiagnosticError) StatusCode() int {
+	return this.HTTPStatusCode
 }

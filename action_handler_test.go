@@ -62,6 +62,12 @@ func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400_JSONRespo
 	this.So(this.response.Body.String(), should.EqualTrimSpace, `[{"Problem":"BindingFailsInputModel"}]`)
 }
 
+func (this *ModelBinderFixture) TestBindModelError__CustomStatusCode() {
+	binder := New(this.controller.HandleBindingFailsCustomStatusCodeInputModel)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, http.StatusTeapot)
+}
+
 func (this *ModelBinderFixture) TestBindsModelAndHandlesNilErrors() {
 	binder := New(this.controller.HandleBindingEmptyErrorsInputModel)
 	binder.ServeHTTP(this.response, this.request)
@@ -106,6 +112,12 @@ func (this *ModelBinderFixture) TestValidatesModelEmptyValidationErrors__HTTP200
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 200)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: ValidatingEmptyErrorsInputModel")
+}
+
+func (this *ModelBinderFixture) TestValidatesModelCustomStatusCodeError__HTTP418() {
+	binder := New(this.controller.HandleValidatingFailsWithCustomStatusCode)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, http.StatusTeapot)
 }
 
 func (this *ModelBinderFixture) TestFinalErrorCondition__HTTP500() {

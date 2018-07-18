@@ -7,13 +7,13 @@ import (
 
 func prepareInputModel(model interface{}, request *http.Request) (statusCode int, err error) {
 	if err = bind(request, model); err != nil {
-		return http.StatusBadRequest, err
+		return statusCodeFromErrorOrDefault(err, http.StatusBadRequest)
 	}
 
 	sanitize(model)
 
 	if err = validate(model); err != nil {
-		return http.StatusUnprocessableEntity, err
+		return statusCodeFromErrorOrDefault(err, http.StatusUnprocessableEntity)
 	}
 
 	if err = serverError(model); err != nil {
@@ -36,6 +36,20 @@ func bind(request *http.Request, message interface{}) error {
 	} else {
 		return err
 	}
+}
+
+func statusCodeFromErrorOrDefault(err error, defaultStatusCode int) (int, error) {
+	status, ok := err.(ErrorCode)
+	if !ok {
+		return defaultStatusCode, err
+	}
+
+	code := status.StatusCode()
+	if code == 0 {
+		return defaultStatusCode, err
+	}
+
+	return code, err
 }
 
 func sanitize(message interface{}) {
