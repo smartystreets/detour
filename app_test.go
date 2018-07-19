@@ -18,6 +18,9 @@ func (this *Controller) HandleBindingInputModel(model *BindingInputModel) Render
 func (this *Controller) HandleBindingFailsInputModel(model *BindingFailsInputModel) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
+func (this *Controller) HandleBindingFailsCustomStatusCodeInputModel(model *BindingFailsWithCustomStatusCodeInputModel) Renderer {
+	panic("We shouldn't reach this point because the binding failed.")
+}
 func (this *Controller) HandleBindingEmptyErrorsInputModel(model *BindingEmptyErrorsInputModel) Renderer {
 	return &ControllerResponse{}
 }
@@ -37,6 +40,9 @@ func (this *Controller) HandleValidatingEmptyErrors(model *ValidatingEmptyErrors
 	return &ControllerResponse{Body: model.Content}
 }
 func (this *Controller) HandleValidatingFailsInputModel(model *ValidatingFailsInputModel) Renderer {
+	panic("We shouldn't reach this point because the validation failed.")
+}
+func (this *Controller) HandleValidatingFailsWithCustomStatusCode(model *ValidatingFailsWithCustomStatusCodeInputModel) Renderer {
 	panic("We shouldn't reach this point because the validation failed.")
 }
 func (this *Controller) HandleFinalError(model *FinalErrorInputModel) Renderer {
@@ -95,6 +101,16 @@ func (this *BindingFailsInputModel) Bind(request *http.Request) error {
 
 /////
 
+type BindingFailsWithCustomStatusCodeInputModel struct{}
+
+func (this *BindingFailsWithCustomStatusCodeInputModel) Bind(request *http.Request) error {
+	var errors Errors
+	errors = errors.Append(&InputError{HTTPStatusCode: http.StatusTeapot})
+	return errors
+}
+
+/////
+
 type BindingFailsInputModelWithDiagnostics struct{}
 
 func (this *BindingFailsInputModelWithDiagnostics) Bind(request *http.Request) error {
@@ -145,6 +161,14 @@ func (this *ValidatingFailsInputModel) Validate() error {
 	var errors Errors
 	errors = errors.Append(NewBindingValidationError("ValidatingFailsInputModel"))
 	return errors
+}
+
+/////
+
+type ValidatingFailsWithCustomStatusCodeInputModel struct{}
+
+func (this *ValidatingFailsWithCustomStatusCodeInputModel) Validate() error {
+	return &DiagnosticError{HTTPStatusCode: http.StatusTeapot}
 }
 
 /////

@@ -46,3 +46,17 @@ func (this *ErrorFixture) TestInputErrorMarshaled() {
 	rendered := err.Error()
 	this.So(rendered, should.Equal, `{"fields":["Field1"],"message":"Message"}`)
 }
+
+func (this *ErrorFixture) StatusCodeForErrors_DefaultsToZeroIfNotSpecifiedByAnyContainedError() {
+	var err Errors
+	err = err.Append(&InputError{})
+	this.So(err.StatusCode(), should.Equal, 0)
+}
+
+func (this *ErrorFixture) StatusCodeForErrors_UsesFirstProvidedStatusCodeFromInnerErrors() {
+	var err Errors
+	err = err.Append(&InputError{HTTPStatusCode: 200})
+	err = err.Append(&InputError{HTTPStatusCode: 201})
+	err = err.Append(&InputError{HTTPStatusCode: 202})
+	this.So(err.StatusCode(), should.Equal, 200)
+}

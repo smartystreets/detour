@@ -22,4 +22,9 @@ type (
 	Renderer interface {
 		Render(http.ResponseWriter, *http.Request)
 	}
+
+	ErrorCode interface {
+		error
+		StatusCode() int
+	}
 )
