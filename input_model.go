@@ -28,17 +28,29 @@ func prepareInputModel(model interface{}, request *http.Request) (statusCode int
 func bind(request *http.Request, message interface{}) error {
 	if isJSON(request) {
 		return json.NewDecoder(request.Body).Decode(&message)
-	} else if binder, isBinder := message.(Binder); !isBinder {
+	}
+
+	binder, isBinder := message.(Binder)
+	if !isBinder {
 		return nil
-	} else if err := request.ParseForm(); err != nil {
-		return err
-	} else if err = binder.Bind(request); err == nil {
-		return nil
-	} else if errs, isErrors := err.(Errors); isErrors && len(errs) == 0 {
-		return nil
-	} else {
+	}
+
+	err := request.ParseForm()
+	if err != nil {
 		return err
 	}
+
+	err = binder.Bind(request)
+	if err == nil {
+		return nil
+	}
+
+	errs, isErrors := err.(Errors)
+	if isErrors && len(errs) == 0 {
+		return nil
+	}
+
+	return err
 }
 
 func statusCodeFromErrorOrDefault(err error, defaultStatusCode int) (int, error) {
@@ -65,16 +77,24 @@ func sanitize(message interface{}) {
 		sanitizer.Sanitize()
 	}
 }
+
 func validate(message interface{}) error {
-	if validator, isValidator := message.(Validator); !isValidator {
+	validator, isValidator := message.(Validator)
+	if !isValidator {
 		return nil
-	} else if err := validator.Validate(); err == nil {
-		return nil
-	} else if errs, isErrors := err.(Errors); isErrors && len(errs) == 0 {
-		return nil
-	} else {
-		return err
 	}
+
+	err := validator.Validate()
+	if err == nil {
+		return nil
+	}
+
+	errs, isErrors := err.(Errors)
+	if isErrors && len(errs) == 0 {
+		return nil
+	}
+
+	return err
 }
 
 func serverError(message interface{}) error {

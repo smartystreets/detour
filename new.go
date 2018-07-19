@@ -6,7 +6,7 @@ import (
 )
 
 type (
-	createModel   func() interface{}
+	createModel func() interface{}
 	monadicAction func(interface{}) Renderer
 	niladicAction func() Renderer
 )
@@ -46,15 +46,26 @@ func identifyInputModelArgumentType(action interface{}) reflect.Type {
 	actionType := reflect.TypeOf(action)
 	if actionType.Kind() != reflect.Func {
 		panic("The action provided is not a function.")
-	} else if argumentCount := actionType.NumIn(); argumentCount > 1 {
-		panic("The callback provided must have no more than one argument.")
-	} else if argumentCount > 0 && actionType.In(0).Kind() != reflect.Ptr {
-		panic("The first argument to the controller callback must be a pointer type.")
-	} else if actionType.NumOut() != 1 || !actionType.Out(0).Implements(reflect.TypeOf((*Renderer)(nil)).Elem()) {
-		panic("The return type must implement Renderer")
-	} else if argumentCount > 0 {
-		return actionType.In(0)
-	} else {
-		return nil
 	}
+
+	argumentCount := actionType.NumIn()
+	if argumentCount > 1 {
+		panic("The callback provided must have no more than one argument.")
+	}
+
+	if argumentCount > 0 && actionType.In(0).Kind() != reflect.Ptr {
+		panic("The first argument to the controller callback must be a pointer type.")
+	}
+
+	if actionType.NumOut() != 1 || !actionType.Out(0).Implements(renderer) {
+		panic("The return type must implement Renderer")
+	}
+
+	if argumentCount > 0 {
+		return actionType.In(0)
+	}
+
+	return nil
 }
+
+var renderer = reflect.TypeOf((*Renderer)(nil)).Elem()

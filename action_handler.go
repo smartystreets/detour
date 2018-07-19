@@ -28,13 +28,17 @@ func (this *actionHandler) determineResult(model interface{}, status int, err er
 }
 
 func inputModelErrorResult(code int, err error) Renderer {
-	if _, isErrors := err.(Errors); isErrors {
+	_, isErrors := err.(Errors)
+	if isErrors {
 		return &JSONResult{StatusCode: code, Content: err}
-	} else if _, isDiagnosticErr := err.(*DiagnosticError); isDiagnosticErr {
-		return &DiagnosticResult{StatusCode: code, Message: err.Error()}
-	} else {
-		return &StatusCodeResult{StatusCode: code, Message: err.Error()}
 	}
+
+	_, isDiagnosticErr := err.(*DiagnosticError)
+	if isDiagnosticErr {
+		return &DiagnosticResult{StatusCode: code, Message: err.Error()}
+	}
+
+	return &StatusCodeResult{StatusCode: code, Message: err.Error()}
 }
 
 func (this *actionHandler) controllerActionResult(model interface{}) Renderer {
