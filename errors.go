@@ -37,7 +37,10 @@ func (this Errors) MarshalJSON() ([]byte, error) {
 func (this Errors) StatusCode() int {
 	for _, err := range this {
 		if code, ok := err.(ErrorCode); ok {
-			return code.StatusCode()
+			statusCode := code.StatusCode()
+			if statusCode != 0 {
+				return statusCode
+			}
 		}
 	}
 	return 0
