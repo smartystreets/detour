@@ -44,28 +44,45 @@ func simple(controllerAction niladicAction) http.Handler {
 
 func identifyInputModelArgumentType(action interface{}) reflect.Type {
 	actionType := reflect.TypeOf(action)
-	if actionType.Kind() != reflect.Func {
+	if !isMethod(actionType) {
 		panic("The action provided is not a function.")
 	}
 
+	if !returnsRenderer(actionType) {
+		panic("The return type must implement the detour.Renderer interface.")
+	}
+
 	argumentCount := actionType.NumIn()
+	if argumentCount == 0 {
+		return nil
+	}
+
 	if argumentCount > 1 {
 		panic("The callback provided must have no more than one argument.")
 	}
 
-	if argumentCount > 0 && actionType.In(0).Kind() != reflect.Ptr {
+	firstArgumentType := actionType.In(0)
+	if !isSinglePointerArgument(argumentCount, firstArgumentType) {
 		panic("The first argument to the controller callback must be a pointer type.")
 	}
 
-	if actionType.NumOut() != 1 || !actionType.Out(0).Implements(renderer) {
-		panic("The return type must implement Renderer")
-	}
+	return firstArgumentType
+}
 
-	if argumentCount > 0 {
-		return actionType.In(0)
-	}
+func isMethod(callback reflect.Type) bool {
+	return callback.Kind() == reflect.Func
+}
 
-	return nil
+func returnsRenderer(actionType reflect.Type) bool {
+	return actionType.NumOut() == 1 && actionType.Out(0).Implements(renderer)
 }
 
 var renderer = reflect.TypeOf((*Renderer)(nil)).Elem()
+
+func isSinglePointerArgument(argumentCount int, firstArgumentType reflect.Type) bool {
+	return argumentCount == 1 && isPointer(firstArgumentType)
+}
+
+func isPointer(argumentType reflect.Type) bool {
+	return argumentType.Kind() == reflect.Ptr
+}
