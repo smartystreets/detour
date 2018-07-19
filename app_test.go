@@ -24,6 +24,9 @@ func (this *Controller) HandleBindingEmptyErrorsInputModel(model *BindingEmptyEr
 func (this *Controller) HandleBindingFailsInputModelWithDiagnostics(model *BindingFailsInputModelWithDiagnostics) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
+func (this *Controller) HandleBindingFromJSON(model *BindingFromJSON) Renderer {
+	return &ControllerResponse{Body: model.Content}
+}
 func (this *Controller) HandleSanitizingInputModel(model *SanitizingInputModel) Renderer {
 	return &ControllerResponse{Body: model.Content}
 }
@@ -96,6 +99,12 @@ type BindingFailsInputModelWithDiagnostics struct{}
 
 func (this *BindingFailsInputModelWithDiagnostics) Bind(request *http.Request) error {
 	return NewDiagnosticError("BindingFailsInputModel")
+}
+
+/////
+
+type BindingFromJSON struct {
+	Content string `json:"content"`
 }
 
 /////
