@@ -68,13 +68,7 @@ func canBindJSON(request *http.Request, message interface{}) bool {
 		return false
 	}
 	binder, ok := message.(BindJSON)
-	if !ok {
-		return false
-	}
-	if !binder.BindJSON() {
-		return false
-	}
-	return true
+	return ok && binder.BindJSON()
 }
 func isPutOrPost(request *http.Request) bool {
 	return request.Method == http.MethodPost || request.Method == http.MethodPut
