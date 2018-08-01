@@ -54,20 +54,6 @@ func bind(request *http.Request, message interface{}) error {
 	return err
 }
 
-func statusCodeFromErrorOrDefault(err error, defaultStatusCode int) (int, error) {
-	status, ok := err.(ErrorCode)
-	if !ok {
-		return defaultStatusCode, err
-	}
-
-	code := status.StatusCode()
-	if code == 0 {
-		return defaultStatusCode, err
-	}
-
-	return code, err
-}
-
 func bindJSON(request *http.Request, message interface{}) error {
 	if !canBindJSON(request, message) {
 		return nil
@@ -93,9 +79,22 @@ func canBindJSON(request *http.Request, message interface{}) bool {
 func isPutOrPost(request *http.Request) bool {
 	return request.Method == http.MethodPost || request.Method == http.MethodPut
 }
-
 func hasJSONContent(request *http.Request) bool {
 	return strings.Contains(request.Header.Get("Content-Type"), "/json")
+}
+
+func statusCodeFromErrorOrDefault(err error, defaultStatusCode int) (int, error) {
+	status, ok := err.(ErrorCode)
+	if !ok {
+		return defaultStatusCode, err
+	}
+
+	code := status.StatusCode()
+	if code == 0 {
+		return defaultStatusCode, err
+	}
+
+	return code, err
 }
 
 func sanitize(message interface{}) {
