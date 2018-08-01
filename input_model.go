@@ -26,10 +26,9 @@ func prepareInputModel(model interface{}, request *http.Request) (statusCode int
 }
 
 func bind(request *http.Request, message interface{}) error {
-	if canBindJSON(request, message) {
-		if err := json.NewDecoder(request.Body).Decode(&message); err != nil {
-			return err
-		}
+	err := bindJSON(request, message)
+	if err != nil {
+		return err
 	}
 
 	binder, isBinder := message.(Binder)
@@ -37,7 +36,7 @@ func bind(request *http.Request, message interface{}) error {
 		return nil
 	}
 
-	err := request.ParseForm()
+	err = request.ParseForm()
 	if err != nil {
 		return err
 	}
@@ -69,11 +68,17 @@ func statusCodeFromErrorOrDefault(err error, defaultStatusCode int) (int, error)
 	return code, err
 }
 
+func bindJSON(request *http.Request, message interface{}) error {
+	if !canBindJSON(request, message) {
+		return nil
+	}
+	return json.NewDecoder(request.Body).Decode(&message)
+}
 func canBindJSON(request *http.Request, message interface{}) bool {
-	if request.Method != http.MethodPost && request.Method != http.MethodPut {
+	if !isPutOrPost(request) {
 		return false
 	}
-	if !strings.Contains(request.Header.Get("Content-Type"), "/json") {
+	if !hasJSONContent(request) {
 		return false
 	}
 	binder, ok := message.(BindJSON)
@@ -84,6 +89,13 @@ func canBindJSON(request *http.Request, message interface{}) bool {
 		return false
 	}
 	return true
+}
+func isPutOrPost(request *http.Request) bool {
+	return request.Method == http.MethodPost || request.Method == http.MethodPut
+}
+
+func hasJSONContent(request *http.Request) bool {
+	return strings.Contains(request.Header.Get("Content-Type"), "/json")
 }
 
 func sanitize(message interface{}) {
