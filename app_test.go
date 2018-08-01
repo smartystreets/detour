@@ -28,7 +28,7 @@ func (this *Controller) HandleBindingFailsInputModelWithDiagnostics(model *Bindi
 	panic("We shouldn't reach this point because the binding failed.")
 }
 func (this *Controller) HandleBindingFromJSON(model *BindingFromJSON) Renderer {
-	return &ControllerResponse{Body: model.Content}
+	return &ControllerResponse{Body: model.FromBody + model.FromHeader}
 }
 func (this *Controller) HandleSanitizingInputModel(model *SanitizingInputModel) Renderer {
 	return &ControllerResponse{Body: model.Content}
@@ -120,7 +120,13 @@ func (this *BindingFailsInputModelWithDiagnostics) Bind(request *http.Request) e
 /////
 
 type BindingFromJSON struct {
-	Content string `json:"content"`
+	FromBody   string `json:"content"`
+	FromHeader string `json:"-"`
+}
+
+func (this *BindingFromJSON) Bind(request *http.Request) error {
+	this.FromHeader = request.Header.Get("binding")
+	return nil
 }
 
 /////

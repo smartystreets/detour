@@ -27,7 +27,9 @@ func prepareInputModel(model interface{}, request *http.Request) (statusCode int
 
 func bind(request *http.Request, message interface{}) error {
 	if isJSON(request) {
-		return json.NewDecoder(request.Body).Decode(&message)
+		if err := json.NewDecoder(request.Body).Decode(&message); err != nil {
+			return err
+		}
 	}
 
 	binder, isBinder := message.(Binder)

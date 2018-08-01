@@ -89,10 +89,11 @@ func (this *ModelBinderFixture) TestBindModelAndHandleError__HTTP400_Diagnostics
 func (this *ModelBinderFixture) TestBindFromJSONPost() {
 	this.request = httptest.NewRequest("POST", "/", strings.NewReader(`{"content": "Hello, World!"}`))
 	this.request.Header.Set("Content-Type", "application/json")
+	this.request.Header.Set("binding", " (from the header)")
 	binder := New(this.controller.HandleBindingFromJSON)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 200)
-	this.So(this.response.Body.String(), should.ContainSubstring, "Hello, World!")
+	this.So(this.response.Body.String(), should.ContainSubstring, "Hello, World! (from the header)")
 }
 func (this *ModelBinderFixture) TestBindFromJSONPut() {
 	this.request = httptest.NewRequest("PUT", "/", strings.NewReader(`{"content": "Hello, World!"}`))
@@ -112,6 +113,7 @@ func (this *ModelBinderFixture) TestBindFromJSON_Malformed() {
 }
 
 func (this *ModelBinderFixture) TestSanitizesModelIfAvailable() {
+	this.request.Header.Set("binding", "hello")
 	sanitizer := New(this.controller.HandleSanitizingInputModel)
 	sanitizer.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
