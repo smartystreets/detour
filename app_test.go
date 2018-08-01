@@ -27,6 +27,10 @@ func (this *Controller) HandleBindingEmptyErrorsInputModel(model *BindingEmptyEr
 func (this *Controller) HandleBindingFailsInputModelWithDiagnostics(model *BindingFailsInputModelWithDiagnostics) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
+
+func (this *Controller) HandleFailedBindingFromJSON(model *FailedBindingFromJSON) Renderer {
+	return &ControllerResponse{Body: model.Content}
+}
 func (this *Controller) HandleBindingFromJSON(model *BindingFromJSON) Renderer {
 	return &ControllerResponse{Body: model.FromBody + model.FromHeader}
 }
@@ -119,10 +123,18 @@ func (this *BindingFailsInputModelWithDiagnostics) Bind(request *http.Request) e
 
 /////
 
+type FailedBindingFromJSON struct {
+	Content string
+}
+
+/////
+
 type BindingFromJSON struct {
 	FromBody   string `json:"content"`
 	FromHeader string `json:"-"`
 }
+
+func (this *BindingFromJSON) BindJSON() bool { return true }
 
 func (this *BindingFromJSON) Bind(request *http.Request) error {
 	this.FromHeader = request.Header.Get("binding")

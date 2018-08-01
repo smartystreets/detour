@@ -7,6 +7,10 @@ type (
 		Bind(*http.Request) error
 	}
 
+	BindJSON interface {
+		BindJSON() bool
+	}
+
 	Sanitizer interface {
 		Sanitize()
 	}

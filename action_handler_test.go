@@ -86,6 +86,15 @@ func (this *ModelBinderFixture) TestBindModelAndHandleError__HTTP400_Diagnostics
 	this.So(this.response.Body.String(), should.ContainSubstring, `---- DISCLAIMER ----`)
 }
 
+func (this *ModelBinderFixture) TestBindFromJSONRequiresInputModelToImplementJSONMarkerInterface() {
+	this.request = httptest.NewRequest("POST", "/", strings.NewReader(`{"content": "Hello, World!"}`))
+	this.request.Header.Set("Content-Type", "application/json")
+	binder := New(this.controller.HandleFailedBindingFromJSON)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 200)
+	this.So(this.response.Body.String(), should.NotContainSubstring, "Hello, World!")
+}
+
 func (this *ModelBinderFixture) TestBindFromJSONPost() {
 	this.request = httptest.NewRequest("POST", "/", strings.NewReader(`{"content": "Hello, World!"}`))
 	this.request.Header.Set("Content-Type", "application/json")

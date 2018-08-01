@@ -26,7 +26,7 @@ func prepareInputModel(model interface{}, request *http.Request) (statusCode int
 }
 
 func bind(request *http.Request, message interface{}) error {
-	if isJSON(request) {
+	if canBindJSON(request, message) {
 		if err := json.NewDecoder(request.Body).Decode(&message); err != nil {
 			return err
 		}
@@ -69,9 +69,21 @@ func statusCodeFromErrorOrDefault(err error, defaultStatusCode int) (int, error)
 	return code, err
 }
 
-func isJSON(request *http.Request) bool {
-	return (request.Method == "POST" || request.Method == "PUT") &&
-		strings.Contains(request.Header.Get("Content-Type"), "/json")
+func canBindJSON(request *http.Request, message interface{}) bool {
+	binder, ok := message.(BindJSON)
+	if !ok {
+		return false
+	}
+	if !binder.BindJSON() {
+		return false
+	}
+	if request.Method != http.MethodPost && request.Method != http.MethodPut {
+		return false
+	}
+	if !strings.Contains(request.Header.Get("Content-Type"), "/json") {
+		return false
+	}
+	return true
 }
 
 func sanitize(message interface{}) {
