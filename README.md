@@ -6,10 +6,17 @@ package detour offers an alternate, MVC-based, approach to HTTP applications.
 Rather than writing traditional http.Handlers you define input models that have
 optional Bind(), Sanitize(), and Validate() methods and which can be passed into
 methods on structs which return a Renderer. Each of these concepts is glued
-together by the library's ActionHandler struct via the New() function. See the
+together by the library's actionHandler struct via the New() function. See the
 example folder for a complete example. Requires Go 1.7+
 
 ## Usage
+
+#### func  Bind
+
+```go
+func Bind(request *http.Request, message interface{}) error
+```
+Bind is exported for use in testing.
 
 #### func  CompoundInputError
 
@@ -29,28 +36,6 @@ func New(controllerAction interface{}) http.Handler
 func SimpleInputError(message, field string) error
 ```
 
-#### type ActionHandler
-
-```go
-type ActionHandler struct {
-}
-```
-
-
-#### func (*ActionHandler) Install
-
-```go
-func (this *ActionHandler) Install(http.Handler)
-```
-Install merely allows *ActionHandler to implement a non-public/internal,
-company-specific interface.
-
-#### func (*ActionHandler) ServeHTTP
-
-```go
-func (this *ActionHandler) ServeHTTP(response http.ResponseWriter, request *http.Request)
-```
-
 #### type BinaryResult
 
 ```go
@@ -62,11 +47,20 @@ type BinaryResult struct {
 ```
 
 
-#### func (*BinaryResult) Render
+#### func (BinaryResult) Render
 
 ```go
-func (this *BinaryResult) Render(response http.ResponseWriter, request *http.Request)
+func (this BinaryResult) Render(response http.ResponseWriter, request *http.Request)
 ```
+
+#### type BindJSON
+
+```go
+type BindJSON interface {
+	BindJSON() bool
+}
+```
+
 
 #### type Binder
 
@@ -84,15 +78,15 @@ type ContentResult struct {
 	StatusCode  int
 	ContentType string
 	Content     string
-	Headers     map[string]string
+	Headers     map[string]string // TODO: do we even need/use this?
 }
 ```
 
 
-#### func (*ContentResult) Render
+#### func (ContentResult) Render
 
 ```go
-func (this *ContentResult) Render(response http.ResponseWriter, request *http.Request)
+func (this ContentResult) Render(response http.ResponseWriter, request *http.Request)
 ```
 
 #### type CookieResult
@@ -107,23 +101,17 @@ type CookieResult struct {
 ```
 
 
-#### func (*CookieResult) Render
+#### func (CookieResult) Render
 
 ```go
-func (this *CookieResult) Render(response http.ResponseWriter, request *http.Request)
+func (this CookieResult) Render(response http.ResponseWriter, request *http.Request)
 ```
-
-#### type CreateModel
-
-```go
-type CreateModel func() interface{}
-```
-
 
 #### type DiagnosticError
 
 ```go
 type DiagnosticError struct {
+	HTTPStatusCode int
 }
 ```
 
@@ -140,6 +128,12 @@ func NewDiagnosticError(message string) *DiagnosticError
 func (this *DiagnosticError) Error() string
 ```
 
+#### func (*DiagnosticError) StatusCode
+
+```go
+func (this *DiagnosticError) StatusCode() int
+```
+
 #### type DiagnosticResult
 
 ```go
@@ -150,11 +144,21 @@ type DiagnosticResult struct {
 ```
 
 
-#### func (*DiagnosticResult) Render
+#### func (DiagnosticResult) Render
 
 ```go
-func (this *DiagnosticResult) Render(response http.ResponseWriter, request *http.Request)
+func (this DiagnosticResult) Render(response http.ResponseWriter, request *http.Request)
 ```
+
+#### type ErrorCode
+
+```go
+type ErrorCode interface {
+	error
+	StatusCode() int
+}
+```
+
 
 #### type ErrorResult
 
@@ -169,10 +173,10 @@ type ErrorResult struct {
 ```
 
 
-#### func (*ErrorResult) Render
+#### func (ErrorResult) Render
 
 ```go
-func (this *ErrorResult) Render(response http.ResponseWriter, request *http.Request)
+func (this ErrorResult) Render(response http.ResponseWriter, request *http.Request)
 ```
 
 #### type Errors
@@ -206,12 +210,19 @@ func (this Errors) Error() string
 func (this Errors) MarshalJSON() ([]byte, error)
 ```
 
+#### func (Errors) StatusCode
+
+```go
+func (this Errors) StatusCode() int
+```
+
 #### type InputError
 
 ```go
 type InputError struct {
-	Fields  []string `json:"fields"`
-	Message string   `json:"message"`
+	Fields         []string `json:"fields"`
+	Message        string   `json:"message"`
+	HTTPStatusCode int      `json:"-"`
 }
 ```
 
@@ -222,6 +233,12 @@ type InputError struct {
 func (this *InputError) Error() string
 ```
 
+#### func (*InputError) StatusCode
+
+```go
+func (this *InputError) StatusCode() int
+```
+
 #### type JSONPResult
 
 ```go
@@ -229,14 +246,15 @@ type JSONPResult struct {
 	StatusCode  int
 	ContentType string
 	Content     interface{}
+	Indent      string
 }
 ```
 
 
-#### func (*JSONPResult) Render
+#### func (JSONPResult) Render
 
 ```go
-func (this *JSONPResult) Render(response http.ResponseWriter, request *http.Request)
+func (this JSONPResult) Render(response http.ResponseWriter, request *http.Request)
 ```
 
 #### type JSONResult
@@ -246,29 +264,32 @@ type JSONResult struct {
 	StatusCode  int
 	ContentType string
 	Content     interface{}
+	Indent      string
 }
 ```
 
 
-#### func (*JSONResult) Render
+#### func (JSONResult) Render
 
 ```go
-func (this *JSONResult) Render(response http.ResponseWriter, request *http.Request)
+func (this JSONResult) Render(response http.ResponseWriter, request *http.Request)
 ```
 
-#### type MonadicAction
+#### type RedirectResult
 
 ```go
-type MonadicAction func(interface{}) Renderer
+type RedirectResult struct {
+	Location   string
+	StatusCode int
+}
 ```
 
 
-#### type NiladicAction
+#### func (RedirectResult) Render
 
 ```go
-type NiladicAction func() Renderer
+func (this RedirectResult) Render(response http.ResponseWriter, request *http.Request)
 ```
-
 
 #### type Renderer
 
@@ -307,10 +328,10 @@ type StatusCodeResult struct {
 ```
 
 
-#### func (*StatusCodeResult) Render
+#### func (StatusCodeResult) Render
 
 ```go
-func (this *StatusCodeResult) Render(response http.ResponseWriter, request *http.Request)
+func (this StatusCodeResult) Render(response http.ResponseWriter, request *http.Request)
 ```
 
 #### type ValidationResult
@@ -325,10 +346,10 @@ type ValidationResult struct {
 ```
 
 
-#### func (*ValidationResult) Render
+#### func (ValidationResult) Render
 
 ```go
-func (this *ValidationResult) Render(response http.ResponseWriter, request *http.Request)
+func (this ValidationResult) Render(response http.ResponseWriter, request *http.Request)
 ```
 
 #### type Validator
