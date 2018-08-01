@@ -70,17 +70,17 @@ func statusCodeFromErrorOrDefault(err error, defaultStatusCode int) (int, error)
 }
 
 func canBindJSON(request *http.Request, message interface{}) bool {
+	if request.Method != http.MethodPost && request.Method != http.MethodPut {
+		return false
+	}
+	if !strings.Contains(request.Header.Get("Content-Type"), "/json") {
+		return false
+	}
 	binder, ok := message.(BindJSON)
 	if !ok {
 		return false
 	}
 	if !binder.BindJSON() {
-		return false
-	}
-	if request.Method != http.MethodPost && request.Method != http.MethodPut {
-		return false
-	}
-	if !strings.Contains(request.Header.Get("Content-Type"), "/json") {
 		return false
 	}
 	return true
