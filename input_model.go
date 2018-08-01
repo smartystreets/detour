@@ -8,7 +8,7 @@ import (
 )
 
 func prepareInputModel(model interface{}, request *http.Request) (statusCode int, err error) {
-	if err = bind(request, model); err != nil {
+	if err = Bind(request, model); err != nil {
 		return statusCodeFromErrorOrDefault(err, http.StatusBadRequest)
 	}
 
@@ -25,7 +25,8 @@ func prepareInputModel(model interface{}, request *http.Request) (statusCode int
 	return 0, nil
 }
 
-func bind(request *http.Request, message interface{}) error {
+// Bind is exported for use in testing.
+func Bind(request *http.Request, message interface{}) error {
 	err := bindJSON(request, message)
 	if err != nil {
 		return err
