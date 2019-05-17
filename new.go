@@ -1,6 +1,7 @@
 package detour
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 )
@@ -10,6 +11,24 @@ type (
 	monadicAction func(interface{}) Renderer
 	niladicAction func() Renderer
 )
+
+func NewFromFactory(inputModelFactory createModel, controllerAction interface{}) http.Handler {
+	expectedModelType := identifyInputModelArgumentType(controllerAction)
+	if expectedModelType == nil {
+		panic("Controller action must accept an input model.")
+	}
+
+	actualModelType := reflect.TypeOf(inputModelFactory())
+	if actualModelType != expectedModelType {
+		panic(fmt.Sprintf(
+			"Controller requires input model of type: [%v] Factory function provided input model of type: [%v]",
+			expectedModelType,
+			actualModelType,
+		))
+	}
+
+	return withFactory(controllerAction, inputModelFactory)
+}
 
 func New(controllerAction interface{}) http.Handler {
 	modelType := identifyInputModelArgumentType(controllerAction)

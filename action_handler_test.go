@@ -28,8 +28,17 @@ func (this *ModelBinderFixture) Setup() {
 	this.response = httptest.NewRecorder()
 }
 
-func (this *ModelBinderFixture) TestBasicInputModelProvidedToApplication__HTTP200() {
-	binder := withFactory(this.controller.HandleBasicInputModel, NewBlankBasicInputModel)
+func (this *ModelBinderFixture) TestFromFactory_IncorrectInputModelType__Panic() {
+	wrongInputModelType := func() interface{} { return "wrong type" }
+	action := func() {NewFromFactory(wrongInputModelType, this.controller.HandleEmptyInputModel) }
+	this.So(action, should.Panic)
+}
+func (this *ModelBinderFixture) TestFromFactory_ControllerWithNoInputModel__Panic() {
+	action := func() { NewFromFactory(NewBlankBasicInputModel, this.controller.HandleEmptyInputModel) }
+	this.So(action, should.Panic)
+}
+func (this *ModelBinderFixture) TestFromFactory_BasicInputModelProvidedToApplication__HTTP200() {
+	binder := NewFromFactory(NewBlankBasicInputModel, this.controller.HandleBasicInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: BasicInputModel")
