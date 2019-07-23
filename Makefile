@@ -1,11 +1,11 @@
 #!/usr/bin/make -f
 
 test:
+	go test -timeout=1s -short ./...
+
+compile:
 	go build ./...
-	go test -short ./...
 
-docs:
-	go get -u github.com/robertkrimen/godocdown/godocdown
-	go install github.com/robertkrimen/godocdown/godocdown
-	godocdown > README.md
+build: test compile
 
+.PHONY: test compile build
