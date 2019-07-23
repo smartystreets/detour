@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	createModel func() interface{}
+	createModel   func() interface{}
 	monadicAction func(interface{}) Renderer
 	niladicAction func() Renderer
 )

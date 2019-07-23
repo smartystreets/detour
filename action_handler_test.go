@@ -30,7 +30,7 @@ func (this *ModelBinderFixture) Setup() {
 
 func (this *ModelBinderFixture) TestFromFactory_IncorrectInputModelType__Panic() {
 	wrongInputModelType := func() interface{} { return "wrong type" }
-	action := func() {NewFromFactory(wrongInputModelType, this.controller.HandleEmptyInputModel) }
+	action := func() { NewFromFactory(wrongInputModelType, this.controller.HandleEmptyInputModel) }
 	this.So(action, should.Panic)
 }
 func (this *ModelBinderFixture) TestFromFactory_ControllerWithNoInputModel__Panic() {
