@@ -14,10 +14,20 @@ type DiagnosticResult struct {
 
 func (this DiagnosticResult) Render(response http.ResponseWriter, request *http.Request) {
 	dump, _ := httputil.DumpRequest(request, false)
-	message := fmt.Sprintf("%d %s\n\nRaw Request:\n\n%s\n\n%s",
+	message := fmt.Sprintf(diagnosticTemplate,
 		this.StatusCode, this.Message, string(dump), disclaimer)
 	http.Error(response, message, this.StatusCode)
 }
+
+var diagnosticTemplate = strings.TrimSpace(`
+%d %s
+
+Raw Request:
+
+%s
+
+%s
+`)
 
 // disclaimer contains a text-art rendering of a disclaimer warning clients not to depend
 // on the content of the diagnostic result. It contains lots of backticks and slashes and
