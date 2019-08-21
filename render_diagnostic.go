@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 )
 
 type DiagnosticResult struct {
@@ -15,8 +16,19 @@ type DiagnosticResult struct {
 func (this DiagnosticResult) Render(response http.ResponseWriter, request *http.Request) {
 	dump, _ := httputil.DumpRequest(request, false)
 	message := fmt.Sprintf(diagnosticTemplate,
-		this.StatusCode, this.Message, string(dump), disclaimer)
+		this.StatusCode, this.Message, formatRequestDump(string(dump)), disclaimer)
 	http.Error(response, message, this.StatusCode)
+}
+
+func formatRequestDump(dump string) string {
+	var buffer strings.Builder
+	lines := strings.Split(dump, "\n")
+	for _, line := range lines {
+		buffer.WriteString("> ")
+		buffer.WriteString(line)
+		buffer.WriteString("\n")
+	}
+	return strings.TrimSpace(buffer.String())
 }
 
 var diagnosticTemplate = strings.TrimSpace(`
