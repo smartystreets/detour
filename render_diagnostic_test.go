@@ -31,8 +31,9 @@ func (this *DiagnosticResultFixture) TestRenderedResponse_DefaultValues() {
 		Message:    "OK",
 	}
 	result.Render(this.response, this.request)
-	this.So(this.response.Body.String(), should.StartWith, "200 OK")
-	this.So(this.response.Body.String(), should.ContainSubstring, "GET /hello-world HTTP/1.1")
-	this.So(this.response.Body.String(), should.ContainSubstring, "Host: example.com")
-	this.So(this.response.Body.String(), should.NotContainSubstring, "Hello, World!")
+	body := this.response.Body.String()
+	this.So(body, should.StartWith, "200 OK")
+	this.So(body, should.ContainSubstring, "GET /hello-world HTTP/1.1")
+	this.So(body, should.ContainSubstring, "Host: example.com")
+	this.So(body, should.NotContainSubstring, "Hello, World!")
 }
