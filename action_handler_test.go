@@ -68,7 +68,7 @@ func (this *ModelBinderFixture) TestBindsModelAndHandlesError__HTTP400_JSONRespo
 	binder := New(this.controller.HandleBindingFailsInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 400)
-	this.So(this.response.HeaderMap.Get(contentTypeHeader), should.Equal, jsonContentType)
+	this.So(this.response.Result().Header.Get(contentTypeHeader), should.Equal, jsonContentType)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, `[{"Problem":"BindingFailsInputModel"}]`)
 }
 
@@ -88,11 +88,11 @@ func (this *ModelBinderFixture) TestBindModelAndHandleError__HTTP400_Diagnostics
 	binder := New(this.controller.HandleBindingFailsInputModelWithDiagnostics)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 400)
-	this.So(this.response.HeaderMap.Get(contentTypeHeader), should.Equal, plaintextContentType)
-	this.So(this.response.Body.String(), should.ContainSubstring, `400 BindingFailsInputModel`)
+	this.So(this.response.Result().Header.Get(contentTypeHeader), should.Equal, plaintextContentType)
+	this.So(this.response.Body.String(), should.ContainSubstring, "400 BindingFailsInputModel")
 	this.So(this.response.Body.String(), should.ContainSubstring, "Raw Request:")
 	this.So(this.response.Body.String(), should.ContainSubstring, "/?binding=BindingInputModel") // from the URL
-	this.So(this.response.Body.String(), should.ContainSubstring, `---- DISCLAIMER ----`)
+	this.So(this.response.Body.String(), should.ContainSubstring, "---- DISCLAIMER ----")
 }
 
 func (this *ModelBinderFixture) TestBindFromJSONRequiresInputModelToImplementJSONMarkerInterface() {
@@ -149,7 +149,7 @@ func (this *ModelBinderFixture) TestValidatesModelAndHandlesError__HTTP422() {
 	binder := New(this.controller.HandleValidatingFailsInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 422)
-	this.So(this.response.HeaderMap.Get(contentTypeHeader), should.Equal, jsonContentType)
+	this.So(this.response.Result().Header.Get(contentTypeHeader), should.Equal, jsonContentType)
 	this.So(this.response.Body.String(), should.EqualTrimSpace, `[{"Problem":"ValidatingFailsInputModel"}]`)
 }
 
