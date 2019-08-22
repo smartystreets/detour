@@ -38,6 +38,11 @@ func inputModelErrorResult(code int, err error) Renderer {
 		return &DiagnosticResult{StatusCode: code, Message: err.Error()}
 	}
 
+	_, isDiagnosticErrors := err.(DiagnosticErrors)
+	if isDiagnosticErrors {
+		return &DiagnosticResult{StatusCode: code, Message: http.StatusText(code) + "\n\n" + err.Error()}
+	}
+
 	return &StatusCodeResult{StatusCode: code, Message: err.Error()}
 }
 
