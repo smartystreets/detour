@@ -184,6 +184,13 @@ func (this *ModelBinderFixture) TestValidatesModelEmptyValidationErrors__HTTP200
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: ValidatingEmptyErrorsInputModel")
 }
 
+func (this *ModelBinderFixture) TestValidatesModelEmptyDiagnosticErrors__HTTP200() {
+	binder := New(this.controller.HandleValidatingEmptyDiagnosticErrors)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 200)
+	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: ValidatingEmptyDiagnosticErrorsInputModel")
+}
+
 func (this *ModelBinderFixture) TestValidatesModelCustomStatusCodeError__HTTP418() {
 	binder := New(this.controller.HandleValidatingFailsWithCustomStatusCode)
 	binder.ServeHTTP(this.response, this.request)

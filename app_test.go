@@ -47,6 +47,9 @@ func (*Controller) HandleValidatingInputModel(model *ValidatingInputModel) Rende
 func (*Controller) HandleValidatingEmptyErrors(model *ValidatingEmptyErrorsInputModel) Renderer {
 	return &ControllerResponse{Body: model.Content}
 }
+func (*Controller) HandleValidatingEmptyDiagnosticErrors(model *ValidatingEmptyDiagnosticErrorsInputModel) Renderer {
+	return &ControllerResponse{Body: model.Content}
+}
 func (*Controller) HandleValidatingFailsInputModel(*ValidatingFailsInputModel) Renderer {
 	panic("We shouldn't reach this point because the validation failed.")
 }
@@ -210,6 +213,16 @@ type ValidatingEmptyErrorsInputModel struct{ Content string }
 func (this *ValidatingEmptyErrorsInputModel) Validate() error {
 	this.Content = "ValidatingEmptyErrorsInputModel"
 	var errors Errors
+	return errors
+}
+
+/////
+
+type ValidatingEmptyDiagnosticErrorsInputModel struct{ Content string }
+
+func (this *ValidatingEmptyDiagnosticErrorsInputModel) Validate() error {
+	this.Content = "ValidatingEmptyDiagnosticErrorsInputModel"
+	var errors DiagnosticErrors
 	return errors
 }
 

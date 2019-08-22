@@ -114,6 +114,11 @@ func validate(message interface{}) error {
 		return nil
 	}
 
+	diagnosticErrs, isDiagnosticErrors := err.(DiagnosticErrors)
+	if isDiagnosticErrors && len(diagnosticErrs) == 0 {
+		return nil
+	}
+
 	return err
 }
 
