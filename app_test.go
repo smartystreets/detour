@@ -1,6 +1,7 @@
 package detour
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 )
@@ -25,6 +26,9 @@ func (this *Controller) HandleBindingEmptyErrorsInputModel(model *BindingEmptyEr
 	return &ControllerResponse{}
 }
 func (this *Controller) HandleBindingFailsInputModelWithDiagnostics(model *BindingFailsInputModelWithDiagnostics) Renderer {
+	panic("We shouldn't reach this point because the binding failed.")
+}
+func (this *Controller) HandleBindingFailsInputModelWithDiagnosticErrors(model *BindingFailsInputModelWithDiagnosticErrors) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
 
@@ -119,6 +123,16 @@ type BindingFailsInputModelWithDiagnostics struct{}
 
 func (this *BindingFailsInputModelWithDiagnostics) Bind(request *http.Request) error {
 	return NewDiagnosticError("BindingFailsInputModel")
+}
+
+/////
+
+type BindingFailsInputModelWithDiagnosticErrors struct{}
+
+func (this *BindingFailsInputModelWithDiagnosticErrors) Bind(request *http.Request) error {
+	var err DiagnosticErrors
+	err = err.Append(errors.New("BindingFailsInputModel"))
+	return err
 }
 
 /////
