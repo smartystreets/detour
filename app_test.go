@@ -10,59 +10,59 @@ import (
 
 type Controller struct{}
 
-func (this *Controller) HandleBasicInputModel(model *BlankBasicInputModel) Renderer {
+func (*Controller) HandleBasicInputModel(model *BlankBasicInputModel) Renderer {
 	return &ControllerResponse{Body: model.Content}
 }
-func (this *Controller) HandleBindingInputModel(model *BindingInputModel) Renderer {
+func (*Controller) HandleBindingInputModel(model *BindingInputModel) Renderer {
 	return &ControllerResponse{Body: model.Content}
 }
-func (this *Controller) HandleBindingFailsInputModel(model *BindingFailsInputModel) Renderer {
+func (*Controller) HandleBindingFailsInputModel(*BindingFailsInputModel) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
-func (this *Controller) HandleBindingFailsCustomStatusCodeInputModel(model *BindingFailsWithCustomStatusCodeInputModel) Renderer {
+func (*Controller) HandleBindingFailsCustomStatusCodeInputModel(*BindingFailsWithCustomStatusCodeInputModel) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
-func (this *Controller) HandleBindingEmptyErrorsInputModel(model *BindingEmptyErrorsInputModel) Renderer {
+func (*Controller) HandleBindingEmptyErrorsInputModel(*BindingEmptyErrorsInputModel) Renderer {
 	return &ControllerResponse{}
 }
-func (this *Controller) HandleBindingFailsInputModelWithDiagnostics(model *BindingFailsInputModelWithDiagnostics) Renderer {
+func (*Controller) HandleBindingFailsInputModelWithDiagnostics(*BindingFailsInputModelWithDiagnostics) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
-func (this *Controller) HandleBindingFailsInputModelWithDiagnosticErrors(model *BindingFailsInputModelWithDiagnosticErrors) Renderer {
+func (*Controller) HandleBindingFailsInputModelWithDiagnosticErrors(*BindingFailsInputModelWithDiagnosticErrors) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
 
-func (this *Controller) HandleFailedBindingFromJSON(model *FailedBindingFromJSON) Renderer {
+func (*Controller) HandleFailedBindingFromJSON(model *FailedBindingFromJSON) Renderer {
 	return &ControllerResponse{Body: model.Content}
 }
-func (this *Controller) HandleBindingFromJSON(model *BindingFromJSON) Renderer {
+func (*Controller) HandleBindingFromJSON(model *BindingFromJSON) Renderer {
 	return &ControllerResponse{Body: model.FromBody + model.FromHeader}
 }
-func (this *Controller) HandleSanitizingInputModel(model *SanitizingInputModel) Renderer {
+func (*Controller) HandleSanitizingInputModel(model *SanitizingInputModel) Renderer {
 	return &ControllerResponse{Body: model.Content}
 }
-func (this *Controller) HandleValidatingInputModel(model *ValidatingInputModel) Renderer {
+func (*Controller) HandleValidatingInputModel(model *ValidatingInputModel) Renderer {
 	return &ControllerResponse{Body: model.Content}
 }
-func (this *Controller) HandleValidatingEmptyErrors(model *ValidatingEmptyErrorsInputModel) Renderer {
+func (*Controller) HandleValidatingEmptyErrors(model *ValidatingEmptyErrorsInputModel) Renderer {
 	return &ControllerResponse{Body: model.Content}
 }
-func (this *Controller) HandleValidatingFailsInputModel(model *ValidatingFailsInputModel) Renderer {
+func (*Controller) HandleValidatingFailsInputModel(*ValidatingFailsInputModel) Renderer {
 	panic("We shouldn't reach this point because the validation failed.")
 }
-func (this *Controller) HandleValidatingFailsWithCustomStatusCode(model *ValidatingFailsWithCustomStatusCodeInputModel) Renderer {
+func (*Controller) HandleValidatingFailsWithCustomStatusCode(*ValidatingFailsWithCustomStatusCodeInputModel) Renderer {
 	panic("We shouldn't reach this point because the validation failed.")
 }
-func (this *Controller) HandleFinalError(model *FinalErrorInputModel) Renderer {
+func (*Controller) HandleFinalError(*FinalErrorInputModel) Renderer {
 	panic("We should't reach this point because the Error method returned true.")
 }
-func (this *Controller) HandleNoFinalError(model *NoFinalErrorInputModel) Renderer {
+func (*Controller) HandleNoFinalError(*NoFinalErrorInputModel) Renderer {
 	return nil
 }
-func (this *Controller) HandleNilResponseInputModel(model *NilResponseInputModel) Renderer {
+func (*Controller) HandleNilResponseInputModel(*NilResponseInputModel) Renderer {
 	return nil
 }
-func (this *Controller) HandleEmptyInputModel() Renderer {
+func (*Controller) HandleEmptyInputModel() Renderer {
 	return nil
 }
 
