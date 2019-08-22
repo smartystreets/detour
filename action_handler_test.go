@@ -203,19 +203,19 @@ func (this *ModelBinderFixture) TestNilResponseFromApplication__HTTP200() {
 ////////////////////////////////////////////////////////////
 
 func (this *ModelBinderFixture) TestModelParsingFromCallback() {
-	this.assertPanic(0)                   // not a method
-	this.assertPanic(func() {})           // no input
-	this.assertPanic(func(int) {})        // not a pointer
-	this.assertPanic(func(*int, *int) {}) // not a pointer
-	this.So(func() { //                      doesn't return a Renderer
-		identifyInputModelArgumentType(func(*BlankBasicInputModel) {})
-	}, should.PanicWith, "The return type must implement the detour.Renderer interface.")
-	this.So(func() {
-		identifyInputModelArgumentType(func(*BlankBasicInputModel) Renderer { return nil })
-	}, should.NotPanic)
+	this.assertPanicWith(0, "The action provided is not a function.")
+	this.assertPanicWith(func(int) Renderer { return nil }, "The first argument to the controller callback must be a pointer type.")
+	this.assertPanicWith(func(*int, *int) Renderer { return nil }, "The callback provided must have no more than one argument.")
+	this.assertPanicWith(func(*BlankBasicInputModel) {}, "The return type must implement the detour.Renderer interface.")
+
+	this.assertDoesNOTPanic(func(*BlankBasicInputModel) Renderer { return nil })
+	this.assertDoesNOTPanic(func() Renderer { return nil })
 }
-func (this *ModelBinderFixture) assertPanic(callback interface{}) {
-	this.So(func() { identifyInputModelArgumentType(callback) }, should.Panic)
+func (this *ModelBinderFixture) assertPanicWith(callback interface{}, content string) {
+	this.So(func() { identifyInputModelArgumentType(callback) }, should.PanicWith, content)
+}
+func (this *ModelBinderFixture) assertDoesNOTPanic(callback interface{}) {
+	this.So(func() { identifyInputModelArgumentType(callback) }, should.NotPanic)
 }
 
 func (this *ModelBinderFixture) TestModelBinding() {
