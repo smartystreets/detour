@@ -203,7 +203,7 @@ func (this *ModelBinderFixture) TestNilResponseFromApplication__HTTP200() {
 ////////////////////////////////////////////////////////////
 
 func (this *ModelBinderFixture) TestModelParsingFromCallback() {
-	this.assertPanicWith(0, "The action provided is not a function.")
+	this.assertPanicWith(0, "The action provided is not a func.")
 	this.assertPanicWith(func(int) Renderer { return nil }, "The first argument to the controller callback must be a pointer type.")
 	this.assertPanicWith(func(*int, *int) Renderer { return nil }, "The callback provided must have no more than one argument.")
 	this.assertPanicWith(func(*BlankBasicInputModel) {}, "The return type must implement the detour.Renderer interface.")

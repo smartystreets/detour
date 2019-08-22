@@ -64,7 +64,7 @@ func simple(controllerAction niladicAction) http.Handler {
 func identifyInputModelArgumentType(action interface{}) reflect.Type {
 	actionType := reflect.TypeOf(action)
 	if !isMethod(actionType) {
-		panic("The action provided is not a function.")
+		panic("The action provided is not a func.")
 	}
 
 	if !returnsRenderer(actionType) {
