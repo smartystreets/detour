@@ -32,8 +32,8 @@ func (this *ModelBinderFixture) TestFromFactory_IncorrectInputModelType__Panic()
 	wrongInputModelType := func() interface{} { return "wrong type" }
 	action := func() { NewFromFactory(wrongInputModelType, this.controller.HandleBasicInputModel) }
 	this.So(action, should.PanicWith,
-		"Controller requires input model of type: [*detour.BlankBasicInputModel] " +
-		"Factory function provided input model of type: [string]")
+		"Controller requires input model of type: [*detour.BlankBasicInputModel] "+
+			"Factory function provided input model of type: [string]")
 }
 func (this *ModelBinderFixture) TestFromFactory_ControllerWithNoInputModel__Panic() {
 	action := func() { NewFromFactory(NewBlankBasicInputModel, this.controller.HandleNoInputModel) }
@@ -203,11 +203,12 @@ func (this *ModelBinderFixture) TestNilResponseFromApplication__HTTP200() {
 ////////////////////////////////////////////////////////////
 
 func (this *ModelBinderFixture) TestModelParsingFromCallback() {
-	this.assertPanic(0)                                                                              // not a method
-	this.assertPanic(func() {})                                                                      // no input
-	this.assertPanic(func(int) {})                                                                   // not a pointer
-	this.assertPanic(func(*int, *int) {})                                                            // not a pointer
-	this.So(func() { identifyInputModelArgumentType(func(*BlankBasicInputModel) {}) }, should.Panic) // doesn't return a Renderer
+	this.assertPanic(0)                   // not a method
+	this.assertPanic(func() {})           // no input
+	this.assertPanic(func(int) {})        // not a pointer
+	this.assertPanic(func(*int, *int) {}) // not a pointer
+	this.So(func() { //                      doesn't return a Renderer
+		identifyInputModelArgumentType(func(*BlankBasicInputModel) {})}, should.Panic)
 	this.So(func() { identifyInputModelArgumentType(func(*BlankBasicInputModel) Renderer { return nil }) }, should.NotPanic)
 }
 func (this *ModelBinderFixture) assertPanic(callback interface{}) {
