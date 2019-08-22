@@ -208,8 +208,11 @@ func (this *ModelBinderFixture) TestModelParsingFromCallback() {
 	this.assertPanic(func(int) {})        // not a pointer
 	this.assertPanic(func(*int, *int) {}) // not a pointer
 	this.So(func() { //                      doesn't return a Renderer
-		identifyInputModelArgumentType(func(*BlankBasicInputModel) {})}, should.Panic)
-	this.So(func() { identifyInputModelArgumentType(func(*BlankBasicInputModel) Renderer { return nil }) }, should.NotPanic)
+		identifyInputModelArgumentType(func(*BlankBasicInputModel) {})
+	}, should.PanicWith, "The return type must implement the detour.Renderer interface.")
+	this.So(func() {
+		identifyInputModelArgumentType(func(*BlankBasicInputModel) Renderer { return nil })
+	}, should.NotPanic)
 }
 func (this *ModelBinderFixture) assertPanic(callback interface{}) {
 	this.So(func() { identifyInputModelArgumentType(callback) }, should.Panic)
