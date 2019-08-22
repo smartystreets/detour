@@ -62,7 +62,7 @@ func (*Controller) HandleNoFinalError(*NoFinalErrorInputModel) Renderer {
 func (*Controller) HandleNilResponseInputModel(*NilResponseInputModel) Renderer {
 	return nil
 }
-func (*Controller) HandleEmptyInputModel() Renderer {
+func (*Controller) HandleNoInputModel() Renderer {
 	return nil
 }
 

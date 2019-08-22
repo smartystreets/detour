@@ -36,7 +36,7 @@ func (this *ModelBinderFixture) TestFromFactory_IncorrectInputModelType__Panic()
 		"Factory function provided input model of type: [string]")
 }
 func (this *ModelBinderFixture) TestFromFactory_ControllerWithNoInputModel__Panic() {
-	action := func() { NewFromFactory(NewBlankBasicInputModel, this.controller.HandleEmptyInputModel) }
+	action := func() { NewFromFactory(NewBlankBasicInputModel, this.controller.HandleNoInputModel) }
 	this.So(action, should.Panic)
 }
 func (this *ModelBinderFixture) TestFromFactory_BasicInputModelProvidedToApplication__HTTP200() {
@@ -47,7 +47,7 @@ func (this *ModelBinderFixture) TestFromFactory_BasicInputModelProvidedToApplica
 }
 
 func (this *ModelBinderFixture) TestNoInputModelProvidedToApplication__HTTP200() {
-	binder := New(this.controller.HandleEmptyInputModel)
+	binder := New(this.controller.HandleNoInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
 }
