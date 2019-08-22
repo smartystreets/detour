@@ -127,6 +127,16 @@ func (this *ModelBinderFixture) TestBindFromJSONPost() {
 	this.So(this.response.Code, should.Equal, 200)
 	this.So(this.response.Body.String(), should.ContainSubstring, "Hello, World! (from the header)")
 }
+func (this *ModelBinderFixture) TestBindFromPost_IncorrectContentType() {
+	this.request = httptest.NewRequest("POST", "/", strings.NewReader(`{"content": "This will not be included."}`))
+	this.request.Header.Set("Content-Type", "application/xml")
+	this.request.Header.Set("binding", "(there should be nothing before this parenthetical header message)")
+	binder := New(this.controller.HandleBindingFromJSON)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 200)
+	this.So(this.response.Body.String(), should.ContainSubstring, "(there should be nothing before this parenthetical header message)")
+}
+
 func (this *ModelBinderFixture) TestBindFromJSONPut() {
 	this.request = httptest.NewRequest("PUT", "/", strings.NewReader(`{"content": "Hello, World!"}`))
 	this.request.Header.Set("Content-Type", "application/json")
