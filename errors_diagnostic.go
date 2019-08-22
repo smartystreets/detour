@@ -2,7 +2,6 @@ package detour
 
 import (
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 )
@@ -24,11 +23,7 @@ func (this DiagnosticErrors) AppendIf(err error, condition bool) DiagnosticError
 }
 
 func (this DiagnosticErrors) Error() string {
-	return fmt.Sprintf("%s\n\nErrors:\n\n", http.StatusText(this.StatusCode())) + this.list()
-}
-
-func (this DiagnosticErrors) StatusCode() int {
-	return http.StatusBadRequest
+	return fmt.Sprintf("Errors:\n\n") + this.list()
 }
 
 func (this DiagnosticErrors) list() string {

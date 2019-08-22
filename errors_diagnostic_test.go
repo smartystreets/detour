@@ -28,8 +28,7 @@ func (this *DiagnosticErrorsFixture) Setup() {
 func(this *DiagnosticErrorsFixture) TestSingleError_SingleBulletPoint() {
 	var err DiagnosticErrors
 	err = err.Append(errors.New("A"))
-	this.So(err.Error(), should.Equal, "Bad Request\n\nErrors:\n\n- A")
-	this.So(err.StatusCode(), should.Equal, http.StatusBadRequest)
+	this.So(err.Error(), should.Equal, "Errors:\n\n- A")
 }
 
 func (this *DiagnosticErrorsFixture) TestMultipleErrors_OrderedList() {
@@ -38,8 +37,7 @@ func (this *DiagnosticErrorsFixture) TestMultipleErrors_OrderedList() {
 	err = err.Append(nil)
 	err = err.AppendIf(errors.New("AA"), false)
 	err = err.AppendIf(errors.New("B"), true)
-	this.So(err.Error(), should.Equal, "Bad Request\n\nErrors:\n\n1. A\n2. B")
-	this.So(err.StatusCode(), should.Equal, http.StatusBadRequest)
+	this.So(err.Error(), should.Equal, "Errors:\n\n1. A\n2. B")
 }
 
 func (this *DiagnosticErrorsFixture) TestPrintRenderedDiagnosticResult() {
@@ -47,10 +45,10 @@ func (this *DiagnosticErrorsFixture) TestPrintRenderedDiagnosticResult() {
 	err = err.Append(errors.New("horizontal boosters"))
 	err = err.Append(errors.New("alluvial dampers"))
 	err = err.Append(errors.New("that's not it, bring me the hydrospanner"))
-	err = err.Append(errors.New("don't know how we're going to get out of this one"))
+	err = err.Append(errors.New("I don't know how we're going to get out of this one"))
 	result := &DiagnosticResult{
-		StatusCode: err.StatusCode(),
-		Message:    err.Error(),
+		StatusCode: http.StatusBadRequest,
+		Message:    "Bad Request\n\n" + err.Error(),
 	}
 
 	result.Render(this.response, this.request)
