@@ -21,14 +21,7 @@ func (this DiagnosticResult) Render(response http.ResponseWriter, request *http.
 }
 
 func formatRequestDump(dump string) string {
-	var buffer strings.Builder
-	lines := strings.Split(dump, "\n")
-	for _, line := range lines {
-		buffer.WriteString("> ")
-		buffer.WriteString(line)
-		buffer.WriteString("\n")
-	}
-	return strings.TrimSpace(buffer.String())
+	return strings.TrimSpace("> " + strings.ReplaceAll(dump, "\n", "\n> "))
 }
 
 var diagnosticTemplate = strings.TrimSpace(`
