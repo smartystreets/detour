@@ -109,6 +109,13 @@ func (this *ModelBinderFixture) TestBindModelAndHandleError__HTTP400_DiagnosticE
 	this.So(this.response.Body.String(), should.ContainSubstring, "---- DISCLAIMER ----")
 }
 
+func (this *ModelBinderFixture) TestBindsModelEmptyValidationErrors__HTTP200() {
+	binder := New(this.controller.HandleBindingSucceedsInputModelWithEmptyDiagnosticErrors)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 200)
+	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: BindingEmptyDiagnosticErrorsInputModel")
+}
+
 func (this *ModelBinderFixture) TestBindFromJSONRequiresInputModelToImplementJSONMarkerInterface() {
 	this.request = httptest.NewRequest("POST", "/", strings.NewReader(`{"content": "Hello, World!"}`))
 	this.request.Header.Set("Content-Type", "application/json")

@@ -31,6 +31,9 @@ func (*Controller) HandleBindingFailsInputModelWithDiagnostics(*BindingFailsInpu
 func (*Controller) HandleBindingFailsInputModelWithDiagnosticErrors(*BindingFailsInputModelWithDiagnosticErrors) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
+func (*Controller) HandleBindingSucceedsInputModelWithEmptyDiagnosticErrors(model *BindingEmptyDiagnosticErrorsInputModel) Renderer {
+	return &ControllerResponse{Body: model.Content}
+}
 
 func (*Controller) HandleFailedBindingFromJSON(model *FailedBindingFromJSON) Renderer {
 	return &ControllerResponse{Body: model.Content}
@@ -136,6 +139,18 @@ func (this *BindingFailsInputModelWithDiagnosticErrors) Bind(request *http.Reque
 	var err DiagnosticErrors
 	err = err.Append(errors.New("BindingFailsInputModel"))
 	return err
+}
+
+/////
+
+type BindingEmptyDiagnosticErrorsInputModel struct {
+	Content string
+	errs    DiagnosticErrors
+}
+
+func (this *BindingEmptyDiagnosticErrorsInputModel) Bind(*http.Request) (err error) {
+	this.Content = "BindingEmptyDiagnosticErrorsInputModel"
+	return this.errs
 }
 
 /////
