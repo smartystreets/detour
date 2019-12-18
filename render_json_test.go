@@ -63,3 +63,11 @@ func (this *ResultFixture) TestJSONResult_StatusCodeDefaultsTo200() {
 
 	this.assertStatusCode(http.StatusOK)
 }
+func (this *ResultFixture) TestJSONResultHeadersCopiedToResponse() {
+	header := http.Header{"Key": []string{"value"}}
+	result := JSONResult{Header: header}
+
+	this.render(result)
+
+	this.assertHasHeader("Key", "value")
+}

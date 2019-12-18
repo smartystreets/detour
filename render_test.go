@@ -44,8 +44,8 @@ func (this *ResultFixture) assertNoHeaders() {
 	this.So(this.response.Header(), should.HaveLength, 0)
 }
 func (this *ResultFixture) assertHasHeader(key, value string) {
-	this.So(this.response.HeaderMap, should.ContainKey, key)
-	this.So(this.response.HeaderMap[key], should.Resemble, []string{value})
+	this.So(this.response.Header(), should.ContainKey, key)
+	this.So(this.response.Header().Get(key), should.Resemble, value)
 }
 
 ///////////////////////////////////////////////////////////////////////////////

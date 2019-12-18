@@ -11,9 +11,11 @@ type JSONPResult struct {
 	ContentType string
 	Content     interface{}
 	Indent      string
+	Header      http.Header
 }
 
 func (this JSONPResult) Render(response http.ResponseWriter, request *http.Request) {
+	copyHeadersToResponse(this.Header, response)
 	writeContentType(response, firstNonBlank(this.ContentType, jsonContentType))
 	content, err := serializeJSON(this.Content, this.Indent)
 	content = wrapJSONP(content, callbackLabel(request))
