@@ -82,11 +82,13 @@ func (this *ResultFixture) TestJSONPResult_NoCallback_SerializesAsPlainOldJSON()
 	this.assertContent(`{"key":"value"}`)
 	this.assertHasHeader(contentTypeHeader, jsonContentType)
 }
-func (this *ResultFixture) TestJSONPResultHeadersCopiedToResponse() {
+func (this *ResultFixture) TestJSONPResultHeadersAddedToResponse() {
+	this.response.Header().Set("Key", "already-added")
 	headers := http.Header{"Key": []string{"value"}}
 	result := JSONPResult{Header: headers}
 
 	this.render(result)
 
 	this.assertHasHeader("Key", "value")
+	this.assertHasHeader("Key", "already-added")
 }

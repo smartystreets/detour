@@ -6,9 +6,9 @@ import (
 	"net/http"
 )
 
-func copyHeadersToResponse(headers http.Header, response http.ResponseWriter) {
-	for header := range headers {
-		response.Header().Add(header, headers.Get(header))
+func copyHeadersToResponse(source, destination http.Header) {
+	for header := range source {
+		destination.Add(header, source.Get(header))
 	}
 }
 

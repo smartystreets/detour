@@ -11,7 +11,7 @@ type JSONResult struct {
 }
 
 func (this JSONResult) Render(response http.ResponseWriter, request *http.Request) {
-	copyHeadersToResponse(this.Header, response)
+	copyHeadersToResponse(this.Header, response.Header())
 	writeJSONResponse(response,
 		this.StatusCode,
 		this.Content,

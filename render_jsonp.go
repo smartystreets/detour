@@ -15,7 +15,7 @@ type JSONPResult struct {
 }
 
 func (this JSONPResult) Render(response http.ResponseWriter, request *http.Request) {
-	copyHeadersToResponse(this.Header, response)
+	copyHeadersToResponse(this.Header, response.Header())
 	writeContentType(response, firstNonBlank(this.ContentType, jsonContentType))
 	content, err := serializeJSON(this.Content, this.Indent)
 	content = wrapJSONP(content, callbackLabel(request))
