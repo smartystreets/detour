@@ -10,7 +10,7 @@ type JSONResult struct {
 	Header      http.Header
 }
 
-func (this JSONResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this JSONResult) Render(response http.ResponseWriter, _ *http.Request) {
 	copyHeadersToResponse(this.Header, response.Header())
 	writeJSONResponse(response,
 		this.StatusCode,

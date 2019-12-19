@@ -9,7 +9,7 @@ type ContentResult struct {
 	Headers     map[string]string // TODO: do we even need/use this?
 }
 
-func (this ContentResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this ContentResult) Render(response http.ResponseWriter, _ *http.Request) {
 	contentType := firstNonBlank(this.ContentType, plaintextContentType)
 
 	headers := response.Header()

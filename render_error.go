@@ -10,7 +10,7 @@ type ErrorResult struct {
 	Error4     error
 }
 
-func (this ErrorResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this ErrorResult) Render(response http.ResponseWriter, _ *http.Request) {
 	var failures Errors
 	failures = failures.Append(this.Error1)
 	failures = failures.Append(this.Error2)

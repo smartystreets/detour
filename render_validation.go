@@ -9,7 +9,7 @@ type ValidationResult struct {
 	Failure4 error
 }
 
-func (this ValidationResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this ValidationResult) Render(response http.ResponseWriter, _ *http.Request) {
 	var failures Errors
 	failures = failures.Append(this.Failure1)
 	failures = failures.Append(this.Failure2)

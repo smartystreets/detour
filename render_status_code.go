@@ -7,7 +7,7 @@ type StatusCodeResult struct {
 	Message    string
 }
 
-func (this StatusCodeResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this StatusCodeResult) Render(response http.ResponseWriter, _ *http.Request) {
 	writeContentTypeAndStatusCode(response, this.StatusCode, plaintextContentType)
 	response.Write([]byte(this.Message))
 }

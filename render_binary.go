@@ -8,7 +8,7 @@ type BinaryResult struct {
 	Content     []byte
 }
 
-func (this BinaryResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this BinaryResult) Render(response http.ResponseWriter, _ *http.Request) {
 	contentType := firstNonBlank(this.ContentType, octetStreamContentType)
 	writeContentTypeAndStatusCode(response, this.StatusCode, contentType)
 	response.Write(this.Content)

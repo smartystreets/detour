@@ -9,7 +9,7 @@ type CookieResult struct {
 	Cookie4 *http.Cookie
 }
 
-func (this CookieResult) Render(response http.ResponseWriter, request *http.Request) {
+func (this CookieResult) Render(response http.ResponseWriter, _ *http.Request) {
 	for _, cookie := range []*http.Cookie{this.Cookie1, this.Cookie2, this.Cookie3, this.Cookie4} {
 		if cookie != nil {
 			http.SetCookie(response, cookie)
