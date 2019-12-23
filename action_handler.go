@@ -1,8 +1,6 @@
 package detour
 
-import (
-	"net/http"
-)
+import "net/http"
 
 type actionHandler struct {
 	controller            monadicAction
@@ -10,6 +8,7 @@ type actionHandler struct {
 }
 
 // Install merely allows *actionHandler to implement a non-public/internal, company-specific interface.
+// Deprecated
 func (this *actionHandler) Install(http.Handler) {}
 
 func (this *actionHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
