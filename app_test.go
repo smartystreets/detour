@@ -98,7 +98,7 @@ func (this *BindingInputModel) Bind(request *http.Request) error {
 type BindingEmptyErrorsInputModel struct {
 }
 
-func (this *BindingEmptyErrorsInputModel) Bind(request *http.Request) error {
+func (this *BindingEmptyErrorsInputModel) Bind(*http.Request) error {
 	var errors Errors
 	return errors
 }
@@ -107,7 +107,7 @@ func (this *BindingEmptyErrorsInputModel) Bind(request *http.Request) error {
 
 type BindingFailsInputModel struct{}
 
-func (this *BindingFailsInputModel) Bind(request *http.Request) error {
+func (this *BindingFailsInputModel) Bind(*http.Request) error {
 	var errors Errors
 	errors = errors.Append(NewBindingValidationError("BindingFailsInputModel"))
 	return errors
@@ -117,7 +117,7 @@ func (this *BindingFailsInputModel) Bind(request *http.Request) error {
 
 type BindingFailsWithCustomStatusCodeInputModel struct{}
 
-func (this *BindingFailsWithCustomStatusCodeInputModel) Bind(request *http.Request) error {
+func (this *BindingFailsWithCustomStatusCodeInputModel) Bind(*http.Request) error {
 	var errors Errors
 	errors = errors.Append(&InputError{HTTPStatusCode: http.StatusTeapot})
 	return errors
@@ -127,7 +127,7 @@ func (this *BindingFailsWithCustomStatusCodeInputModel) Bind(request *http.Reque
 
 type BindingFailsInputModelWithDiagnostics struct{}
 
-func (this *BindingFailsInputModelWithDiagnostics) Bind(request *http.Request) error {
+func (this *BindingFailsInputModelWithDiagnostics) Bind(*http.Request) error {
 	return NewDiagnosticError("BindingFailsInputModel")
 }
 
@@ -135,7 +135,7 @@ func (this *BindingFailsInputModelWithDiagnostics) Bind(request *http.Request) e
 
 type BindingFailsInputModelWithDiagnosticErrors struct{}
 
-func (this *BindingFailsInputModelWithDiagnosticErrors) Bind(request *http.Request) error {
+func (this *BindingFailsInputModelWithDiagnosticErrors) Bind(*http.Request) error {
 	var err DiagnosticErrors
 	err = err.Append(errors.New("BindingFailsInputModel"))
 	return err
@@ -194,7 +194,7 @@ type ValidatingInputModel struct {
 	Content string
 }
 
-func (this *ValidatingInputModel) Bind(request *http.Request) error {
+func (this *ValidatingInputModel) Bind(*http.Request) error {
 	return nil
 }
 
@@ -263,7 +263,7 @@ type ControllerResponse struct {
 	Body string
 }
 
-func (this *ControllerResponse) Render(response http.ResponseWriter, request *http.Request) {
+func (this *ControllerResponse) Render(response http.ResponseWriter, _ *http.Request) {
 	http.Error(response, "Just handled: "+this.Body, http.StatusOK)
 }
 

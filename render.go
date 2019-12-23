@@ -6,12 +6,6 @@ import (
 	"net/http"
 )
 
-func copyHeaders(source, destination http.Header) {
-	for header := range source {
-		destination.Add(header, source.Get(header))
-	}
-}
-
 func writeJSONResponse(response http.ResponseWriter, statusCode int, content interface{}, contentType, indent string) {
 	writeContentType(response, contentType)
 	serialized, err := serializeJSON(content, indent)

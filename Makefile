@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 
+simple-test:
+	go test -timeout=1s -count=1 ./...
+
 test:
 	go test -timeout=1s -race -coverprofile=coverage.txt -covermode=atomic ./...
 
@@ -8,4 +11,4 @@ compile:
 
 build: test compile
 
-.PHONY: test compile build
+.PHONY: simple-test test compile build
