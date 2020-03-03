@@ -45,3 +45,15 @@ func (this Errors) StatusCode() int {
 	}
 	return 0
 }
+
+type StatusCodeError struct {
+	Message    string `json:"message,omitempty"`
+	statusCode int    `json:"-"`
+}
+
+func NewStatusCodeError(message string, statusCode int) *StatusCodeError {
+	return &StatusCodeError{Message: message, statusCode: statusCode}
+}
+
+func (this StatusCodeError) Error() string   { return this.Message }
+func (this StatusCodeError) StatusCode() int { return this.statusCode }

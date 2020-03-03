@@ -2,6 +2,7 @@ package detour
 
 import (
 	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/smartystreets/assertions/should"
@@ -39,4 +40,10 @@ func (this *ErrorFixture) TestErrorSerialization() {
 	this.problems = this.problems.Append(SimpleInputError("Hello", "World"))
 
 	this.So(this.problems.Error(), should.Equal, `[{"fields":["World"],"message":"Hello"}]`)
+}
+
+func (this *ErrorFixture) TestStatusCodeError() {
+	err := NewStatusCodeError("message", http.StatusBadRequest)
+	this.So(err.Error(), should.Equal, "message")
+	this.So(err.StatusCode(), should.Equal, http.StatusBadRequest)
 }

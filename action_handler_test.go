@@ -140,8 +140,9 @@ func (this *ModelBinderFixture) TestBindFromPost_IncorrectContentType() {
 	this.request.Header.Set("binding", "(there should be nothing before this parenthetical header message)")
 	binder := New(this.controller.HandleBindingFromJSON)
 	binder.ServeHTTP(this.response, this.request)
-	this.So(this.response.Code, should.Equal, 200)
-	this.So(this.response.Body.String(), should.ContainSubstring, "(there should be nothing before this parenthetical header message)")
+	this.So(this.response.Code, should.Equal, http.StatusPreconditionFailed)
+	this.So(this.response.Body.String(), should.ContainSubstring, "Content-Type")
+	this.So(this.response.Body.String(), should.ContainSubstring, "JSON")
 }
 
 func (this *ModelBinderFixture) TestBindFromJSONPut() {

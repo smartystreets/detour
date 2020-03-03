@@ -61,25 +61,21 @@ func Bind(request *http.Request, message interface{}) error {
 }
 
 func bindJSON(request *http.Request, message interface{}) error {
-	if !canBindJSON(request, message) {
+	if !isPutOrPost(request) {
 		return nil
 	}
+	if binder, ok := message.(BindJSON); !ok || !binder.BindJSON() {
+		return nil
+	}
+	if !hasJSONContentType(request) {
+		return Errors{NewStatusCodeError("the Content-Type header must indicate a JSON payload", http.StatusPreconditionFailed)}
+	}
 	return json.NewDecoder(request.Body).Decode(&message)
-}
-func canBindJSON(request *http.Request, message interface{}) bool {
-	if !isPutOrPost(request) {
-		return false
-	}
-	if !hasJSONContent(request) {
-		return false
-	}
-	binder, ok := message.(BindJSON)
-	return ok && binder.BindJSON()
 }
 func isPutOrPost(request *http.Request) bool {
 	return request.Method == http.MethodPost || request.Method == http.MethodPut
 }
-func hasJSONContent(request *http.Request) bool {
+func hasJSONContentType(request *http.Request) bool {
 	return strings.Contains(request.Header.Get("Content-Type"), "/json")
 }
 
