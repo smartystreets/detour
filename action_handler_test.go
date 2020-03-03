@@ -134,14 +134,32 @@ func (this *ModelBinderFixture) TestBindFromJSONPost() {
 	this.So(this.response.Code, should.Equal, 200)
 	this.So(this.response.Body.String(), should.ContainSubstring, "Hello, World! (from the header)")
 }
-func (this *ModelBinderFixture) TestBindFromPost_IncorrectContentType() {
+func (this *ModelBinderFixture) TestBindFromPost_UnsupportedMediaType() {
 	this.request = httptest.NewRequest("POST", "/", strings.NewReader(`{"content": "This will not be included."}`))
 	this.request.Header.Set("Content-Type", "application/xml")
 	this.request.Header.Set("binding", "(there should be nothing before this parenthetical header message)")
 	binder := New(this.controller.HandleBindingFromJSON)
 	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 415)
+	this.So(this.response.Body.String(), should.Equal, "Unsupported Media Type")
+}
+func (this *ModelBinderFixture) TestBindFromJSONDisabled_JSONBodyIgnored() {
+	this.request = httptest.NewRequest("POST", "/", strings.NewReader(`{"content": "This will not be included."}`))
+	this.request.Header.Set("Content-Type", "application/json")
+	this.request.Header.Set("binding", "(there should be nothing before this parenthetical header message)")
+	binder := New(this.controller.HandleBindingFromJSONDisabled)
+	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, 200)
-	this.So(this.response.Body.String(), should.ContainSubstring, "(there should be nothing before this parenthetical header message)")
+	this.So(this.response.Body.String(), should.Equal, "Just handled: (there should be nothing before this parenthetical header message)\n")
+}
+func (this *ModelBinderFixture) TestBindFromJSON_NotPUTorPOST_MethodNotAllowed() {
+	this.request = httptest.NewRequest("GET", "/", strings.NewReader(`{"content": "This will not be included."}`))
+	this.request.Header.Set("Content-Type", "application/json")
+	this.request.Header.Set("binding", "(there should be nothing before this parenthetical header message)")
+	binder := New(this.controller.HandleBindingFromJSON)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, 405)
+	this.So(this.response.Body.String(), should.Equal, "Method Not Allowed")
 }
 
 func (this *ModelBinderFixture) TestBindFromJSONPut() {

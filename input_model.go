@@ -61,20 +61,21 @@ func Bind(request *http.Request, message interface{}) error {
 }
 
 func bindJSON(request *http.Request, message interface{}) error {
-	if !canBindJSON(request, message) {
+	binder, ok := message.(BindJSON)
+	if !ok {
 		return nil
 	}
-	return json.NewDecoder(request.Body).Decode(&message)
-}
-func canBindJSON(request *http.Request, message interface{}) bool {
+	if !binder.BindJSON() {
+		return nil
+	}
 	if !isPutOrPost(request) {
-		return false
+		return errMethodNotAllowed
 	}
 	if !hasJSONContent(request) {
-		return false
+		return errUnsupportedMediaType
 	}
-	binder, ok := message.(BindJSON)
-	return ok && binder.BindJSON()
+
+	return json.NewDecoder(request.Body).Decode(&message)
 }
 func isPutOrPost(request *http.Request) bool {
 	return request.Method == http.MethodPost || request.Method == http.MethodPut
@@ -134,4 +135,26 @@ func serverError(message interface{}) error {
 	return nil
 }
 
-var internalServerError = errors.New(http.StatusText(http.StatusInternalServerError))
+var (
+	internalServerError     = errors.New(http.StatusText(http.StatusInternalServerError))
+	errUnsupportedMediaType = NewStatusCodeError(http.StatusUnsupportedMediaType)
+	errMethodNotAllowed     = NewStatusCodeError(http.StatusMethodNotAllowed)
+)
+
+//////////////////////////////////////////////////////////////////////
+
+type StatusCodeError struct {
+	statusCode int
+}
+
+func NewStatusCodeError(statusCode int) *StatusCodeError {
+	return &StatusCodeError{statusCode: statusCode}
+}
+
+func (this StatusCodeError) StatusCode() int {
+	return this.statusCode
+}
+
+func (this StatusCodeError) Error() string {
+	return http.StatusText(this.statusCode)
+}

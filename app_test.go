@@ -41,6 +41,9 @@ func (*Controller) HandleFailedBindingFromJSON(model *FailedBindingFromJSON) Ren
 func (*Controller) HandleBindingFromJSON(model *BindingFromJSON) Renderer {
 	return &ControllerResponse{Body: model.FromBody + model.FromHeader}
 }
+func (*Controller) HandleBindingFromJSONDisabled(model *BindingFromJSONDisabled) Renderer {
+	return &ControllerResponse{Body: model.FromBody + model.FromHeader}
+}
 func (*Controller) HandleSanitizingInputModel(model *SanitizingInputModel) Renderer {
 	return &ControllerResponse{Body: model.Content}
 }
@@ -169,6 +172,20 @@ type BindingFromJSON struct {
 func (this *BindingFromJSON) BindJSON() bool { return true }
 
 func (this *BindingFromJSON) Bind(request *http.Request) error {
+	this.FromHeader = request.Header.Get("binding")
+	return nil
+}
+
+/////
+
+type BindingFromJSONDisabled struct {
+	FromBody   string `json:"content"`
+	FromHeader string `json:"-"`
+}
+
+func (this *BindingFromJSONDisabled) BindJSON() bool { return false }
+
+func (this *BindingFromJSONDisabled) Bind(request *http.Request) error {
 	this.FromHeader = request.Header.Get("binding")
 	return nil
 }
