@@ -155,8 +155,9 @@ type JSONBodyRenderer struct {
 }
 
 func (this JSONBodyRenderer) Render(response http.ResponseWriter, request *http.Request) {
-	if this.JSONp {
-		_, _ = io.WriteString(response, request.URL.Query().Get("callback"))
+	callback := request.URL.Query().Get("callback")
+	if this.JSONp && callback != "" {
+		_, _ = io.WriteString(response, callback)
 		_, _ = io.WriteString(response, "(")
 	}
 
@@ -166,7 +167,7 @@ func (this JSONBodyRenderer) Render(response http.ResponseWriter, request *http.
 	}
 	_ = encoder.Encode(this.Content)
 
-	if this.JSONp {
+	if this.JSONp && callback != "" {
 		_, _ = io.WriteString(response, ")")
 	}
 }

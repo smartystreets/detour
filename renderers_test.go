@@ -192,6 +192,17 @@ func (this *ResponsesFixture) TestJSONBodyRenderer_JSONP() {
 	this.assertNoResponseHeaders()
 	this.assertBody("hello([1,2,3]\n)")
 }
+func (this *ResponsesFixture) TestJSONBodyRenderer_JSONP_NoCallback() {
+	query := this.request.URL.Query()
+	query.Del("callback")
+	this.request.URL.RawQuery = query.Encode()
+
+	this.render(JSONBodyRenderer{Content: []int{1, 2, 3}, JSONp: true})
+
+	this.assertStatusOK()
+	this.assertNoResponseHeaders()
+	this.assertBody("[1,2,3]")
+}
 func (this *ResponsesFixture) TestIfElseRendering_True() {
 	this.render(IfElseRenderer(
 		true,
