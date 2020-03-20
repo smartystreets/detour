@@ -156,20 +156,26 @@ type JSONBodyRenderer struct {
 
 func (this JSONBodyRenderer) Render(response http.ResponseWriter, request *http.Request) {
 	callback := request.URL.Query().Get("callback")
-	if this.JSONp && callback != "" {
+	canRenderJSONp := this.JSONp && callback != ""
+
+	if canRenderJSONp {
 		_, _ = io.WriteString(response, callback)
 		_, _ = io.WriteString(response, "(")
 	}
 
-	encoder := json.NewEncoder(response)
-	if this.Indent != "" {
-		encoder.SetIndent("", this.Indent)
-	}
-	_ = encoder.Encode(this.Content)
+	_, _ = response.Write(this.renderContent())
 
-	if this.JSONp && callback != "" {
+	if canRenderJSONp {
 		_, _ = io.WriteString(response, ")")
 	}
+}
+func (this JSONBodyRenderer) renderContent() (content []byte) {
+	if this.Indent != "" {
+		content, _ = json.MarshalIndent(this.Content, "", this.Indent)
+	} else {
+		content, _ = json.Marshal(this.Content)
+	}
+	return content
 }
 
 /* ------------------------------------------------------------------------- */

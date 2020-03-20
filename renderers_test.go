@@ -190,7 +190,13 @@ func (this *ResponsesFixture) TestJSONBodyRenderer_JSONP() {
 	this.render(JSONBodyRenderer{Content: []int{1, 2, 3}, JSONp: true})
 	this.assertStatusOK()
 	this.assertNoResponseHeaders()
-	this.assertBody("hello([1,2,3]\n)")
+	this.assertBody("hello([1,2,3])")
+}
+func (this *ResponsesFixture) TestJSONBodyRenderer_JSONP_Indent() {
+	this.render(JSONBodyRenderer{Content: []int{1, 2, 3}, JSONp: true, Indent: "  "})
+	this.assertStatusOK()
+	this.assertNoResponseHeaders()
+	this.assertBody("hello([\n  1,\n  2,\n  3\n])")
 }
 func (this *ResponsesFixture) TestJSONBodyRenderer_JSONP_NoCallback() {
 	query := this.request.URL.Query()
