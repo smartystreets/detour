@@ -12,14 +12,28 @@ type DiagnosticResult struct {
 	StatusCode int
 	Message    string
 	Header     http.Header
+
+	DumpNonCanonicalRequestHeaders bool
 }
 
 func (this DiagnosticResult) Render(response http.ResponseWriter, request *http.Request) {
+	this.redactNonCanonicalRequestHeaders(request)
 	dump, _ := httputil.DumpRequest(request, false)
 	message := fmt.Sprintf(diagnosticTemplate,
 		this.StatusCode, this.Message, formatRequestDump(string(dump)), disclaimer)
 	copyHeaders(this.Header, response.Header())
 	http.Error(response, message, this.StatusCode)
+}
+
+func (this DiagnosticResult) redactNonCanonicalRequestHeaders(request *http.Request) {
+	if this.DumpNonCanonicalRequestHeaders {
+		return
+	}
+	for header := range request.Header {
+		if strings.HasPrefix(header, "X-") {
+			request.Header.Del(header)
+		}
+	}
 }
 
 func formatRequestDump(dump string) string {
