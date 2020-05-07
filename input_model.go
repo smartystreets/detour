@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"reflect"
 	"strings"
 )
 
@@ -27,6 +28,8 @@ func prepareInputModel(model interface{}, request *http.Request) (statusCode int
 
 // Bind is exported for use in testing.
 func Bind(request *http.Request, message interface{}) error {
+	bindContext(message, request)
+
 	err := bindJSON(request, message)
 	if err != nil {
 		return err
@@ -58,6 +61,17 @@ func Bind(request *http.Request, message interface{}) error {
 	}
 
 	return err
+}
+
+func bindContext(message interface{}, request *http.Request) {
+	if message == nil {
+		return
+	}
+	messageValue := reflect.ValueOf(message).Elem()
+	contextField := messageValue.FieldByName("Context")
+	if contextField.CanSet() && contextField.Type().String() == "context.Context" {
+		contextField.Set(reflect.ValueOf(request.Context()))
+	}
 }
 
 func bindJSON(request *http.Request, message interface{}) error {

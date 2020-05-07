@@ -1,6 +1,7 @@
 package detour
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -50,6 +51,20 @@ func (this *ModelBinderFixture) TestNoInputModelProvidedToApplication__HTTP200()
 	binder := New(this.controller.HandleNoInputModel)
 	binder.ServeHTTP(this.response, this.request)
 	this.So(this.response.Code, should.Equal, http.StatusOK)
+}
+
+func (this *ModelBinderFixture) TestRequestContextIsPopulatedWhenOnInputModel_HTTP200() {
+	binder := New(this.controller.HandleInputModelWithContextField)
+	binder.ServeHTTP(this.response, this.request.WithContext(context.WithValue(context.Background(), "Key", "ContextInputModel")))
+	this.So(this.response.Code, should.Equal, http.StatusOK)
+	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: ContextInputModel")
+}
+
+func (this *ModelBinderFixture) TestReflectionDistinguishesContextType_HTTP200() {
+	binder := New(this.controller.HandleInputModelWithWronglyTypedContextField)
+	binder.ServeHTTP(this.response, this.request)
+	this.So(this.response.Code, should.Equal, http.StatusOK)
+	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: BindingInputModel")
 }
 
 func (this *ModelBinderFixture) TestBindsModelForApplication__HTTP200() {
