@@ -60,13 +60,6 @@ func (this *ModelBinderFixture) TestRequestContextIsPopulatedWhenOnInputModel_HT
 	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: ContextInputModel")
 }
 
-func (this *ModelBinderFixture) TestReflectionDistinguishesContextType_HTTP200() {
-	binder := New(this.controller.HandleInputModelWithWronglyTypedContextField)
-	binder.ServeHTTP(this.response, this.request)
-	this.So(this.response.Code, should.Equal, http.StatusOK)
-	this.So(this.response.Body.String(), should.EqualTrimSpace, "Just handled: BindingInputModel")
-}
-
 func (this *ModelBinderFixture) TestBindsModelForApplication__HTTP200() {
 	binder := New(this.controller.HandleBindingInputModel)
 	binder.ServeHTTP(this.response, this.request)

@@ -1,7 +1,6 @@
 package detour
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -19,9 +18,6 @@ func (*Controller) HandleBindingInputModel(model *BindingInputModel) Renderer {
 }
 func (*Controller) HandleInputModelWithContextField(model *ContextInputModel) Renderer {
 	return &ControllerResponse{Body: model.Context.Value("Key").(string)}
-}
-func (*Controller) HandleInputModelWithWronglyTypedContextField(model *ContextStringInputModel) Renderer {
-	return &ControllerResponse{Body: model.Context}
 }
 func (*Controller) HandleBindingFailsInputModel(*BindingFailsInputModel) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
@@ -106,22 +102,7 @@ func (this *BindingInputModel) Bind(request *http.Request) error {
 /////
 
 type ContextInputModel struct {
-	Context context.Context
-}
-
-func (this *ContextInputModel) Bind(request *http.Request) error {
-	return nil
-}
-
-/////
-
-type ContextStringInputModel struct {
-	Context string
-}
-
-func (this *ContextStringInputModel) Bind(request *http.Request) error {
-	this.Context = request.Form.Get("binding")
-	return nil
+	ContextBinder
 }
 
 /////
