@@ -87,7 +87,7 @@ func (this *ResponsesFixture) TestHeadersRenderer() {
 	this.assertBlankBody()
 }
 func (this *ResponsesFixture) TestSetHeaderRenderer_OddLengthSlice_Panics() {
-	this.So(func() { this.render(SetHeaderPairsRenderer{"x-smarty", /* missing value! */}) }, should.Panic)
+	this.So(func() { this.render(SetHeaderPairsRenderer{"x-smarty" /* missing value! */}) }, should.Panic)
 }
 func (this *ResponsesFixture) TestSetHeaderRenderer() {
 	this.render(SetHeaderPairsRenderer{
@@ -102,7 +102,7 @@ func (this *ResponsesFixture) TestSetHeaderRenderer() {
 	this.assertBlankBody()
 }
 func (this *ResponsesFixture) TestAddHeaderRenderer_OddLengthSlice_Panics() {
-	this.So(func() { this.render(AddHeaderPairsRenderer{"x-smarty", /* missing value! */}) }, should.Panic)
+	this.So(func() { this.render(AddHeaderPairsRenderer{"x-smarty" /* missing value! */}) }, should.Panic)
 }
 func (this *ResponsesFixture) TestAddHeaderRenderer() {
 	this.render(AddHeaderPairsRenderer{

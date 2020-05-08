@@ -9,5 +9,3 @@ type ContextBinder struct {
 func (this *ContextBinder) BindContext(context context.Context) {
 	this.Context = context
 }
-
-

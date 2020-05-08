@@ -25,7 +25,7 @@ func (this *DiagnosticErrorsFixture) Setup() {
 	this.response = httptest.NewRecorder()
 }
 
-func(this *DiagnosticErrorsFixture) TestSingleError_SingleBulletPoint() {
+func (this *DiagnosticErrorsFixture) TestSingleError_SingleBulletPoint() {
 	var err DiagnosticErrors
 	err = err.Append(errors.New("A"))
 	this.So(err.Error(), should.Equal, "Errors:\n\n- A")

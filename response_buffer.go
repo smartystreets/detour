@@ -61,4 +61,3 @@ func (this *responseBuffer) resetHeaders() {
 		delete(this.headers, key)
 	}
 }
-

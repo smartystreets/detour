@@ -8,11 +8,11 @@ import (
 )
 
 func TestInputErrorFixture(t *testing.T) {
-    gunit.Run(new(InputErrorFixture), t)
+	gunit.Run(new(InputErrorFixture), t)
 }
 
 type InputErrorFixture struct {
-    *gunit.Fixture
+	*gunit.Fixture
 }
 
 func (this *InputErrorFixture) TestInputErrorMarshaled() {
