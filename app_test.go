@@ -16,6 +16,9 @@ func (*Controller) HandleBasicInputModel(model *BlankBasicInputModel) Renderer {
 func (*Controller) HandleBindingInputModel(model *BindingInputModel) Renderer {
 	return &ControllerResponse{Body: model.Content}
 }
+func (*Controller) HandleInputModelWithContextField(model *ContextInputModel) Renderer {
+	return &ControllerResponse{Body: model.Context.Value("Key").(string)}
+}
 func (*Controller) HandleBindingFailsInputModel(*BindingFailsInputModel) Renderer {
 	panic("We shouldn't reach this point because the binding failed.")
 }
@@ -94,6 +97,12 @@ type BindingInputModel struct {
 func (this *BindingInputModel) Bind(request *http.Request) error {
 	this.Content = request.Form.Get("binding")
 	return nil
+}
+
+/////
+
+type ContextInputModel struct {
+	ContextBinder
 }
 
 /////

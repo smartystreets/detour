@@ -27,6 +27,10 @@ func prepareInputModel(model interface{}, request *http.Request) (statusCode int
 
 // Bind is exported for use in testing.
 func Bind(request *http.Request, message interface{}) error {
+	if context, ok := message.(BindContext); ok {
+		context.BindContext(request.Context())
+	}
+
 	err := bindJSON(request, message)
 	if err != nil {
 		return err

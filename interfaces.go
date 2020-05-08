@@ -1,10 +1,17 @@
 package detour
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 type (
 	Binder interface {
 		Bind(*http.Request) error
+	}
+
+	BindContext interface {
+		BindContext(context.Context)
 	}
 
 	BindJSON interface {
