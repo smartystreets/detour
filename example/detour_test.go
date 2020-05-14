@@ -20,12 +20,17 @@ type ProcessPaymentDetourFixture struct {
 }
 
 func (this *ProcessPaymentDetourFixture) Setup() {
-	this.DetourFixture = detourtest.Initialize(this.Fixture)
+	this.DetourFixture = detourtest.Initialize()
 	this.RequestHeaders.Set("Account-Id", "1")
 	this.RequestHeaders.Set("User-Agent", "UserAgent")
 	this.RequestBody["amount"] = 2
 	this.RequestBody["order_id"] = 3
 	this.RequestBody["payment_method_id"] = 4
+}
+func (this *ProcessPaymentDetourFixture) Teardown() {
+	if this.Failed() {
+		this.Print(this.Dump.String())
+	}
 }
 
 func (this *ProcessPaymentDetourFixture) Test_NoAccountID_HTTP500() {
@@ -53,6 +58,7 @@ func (this *ProcessPaymentDetourFixture) Test_OrderIDRequired_HTTP422() {
 
 	this.So(this.Handler.HandleCount, should.Equal, 0)
 	this.So(this.ResponseStatus, should.Equal, http.StatusUnprocessableEntity)
+	this.So(this.ResponseHeaders.Get("Content-Type"), should.Equal, "application/json; charset=utf-8")
 	this.So(this.ResponseBodyJSON(), should.Resemble, map[string]interface{}{
 		"result":  "payment-context:request-validation-error",
 		"message": "The request was invalid. See included data for details.",
@@ -71,6 +77,7 @@ func (this *ProcessPaymentDetourFixture) Test_AmountRequired_HTTP422() {
 
 	this.So(this.Handler.HandleCount, should.Equal, 0)
 	this.So(this.ResponseStatus, should.Equal, http.StatusUnprocessableEntity)
+	this.So(this.ResponseHeaders.Get("Content-Type"), should.Equal, "application/json; charset=utf-8")
 	this.So(this.ResponseBodyJSON(), should.Resemble, map[string]interface{}{
 		"result":  "payment-context:request-validation-error",
 		"message": "The request was invalid. See included data for details.",
@@ -89,6 +96,7 @@ func (this *ProcessPaymentDetourFixture) Test_PaymentMethodIDRequired_HTTP422() 
 
 	this.So(this.Handler.HandleCount, should.Equal, 0)
 	this.So(this.ResponseStatus, should.Equal, http.StatusUnprocessableEntity)
+	this.So(this.ResponseHeaders.Get("Content-Type"), should.Equal, "application/json; charset=utf-8")
 	this.So(this.ResponseBodyJSON(), should.Resemble, map[string]interface{}{
 		"result":  "payment-context:request-validation-error",
 		"message": "The request was invalid. See included data for details.",
@@ -109,6 +117,7 @@ func (this *ProcessPaymentDetourFixture) Test_MultipleRequiredFields_HTTP422() {
 
 	this.So(this.Handler.HandleCount, should.Equal, 0)
 	this.So(this.ResponseStatus, should.Equal, http.StatusUnprocessableEntity)
+	this.So(this.ResponseHeaders.Get("Content-Type"), should.Equal, "application/json; charset=utf-8")
 	this.So(this.ResponseBodyJSON(), should.Resemble, map[string]interface{}{
 		"result":  "payment-context:request-validation-error",
 		"message": "The request was invalid. See included data for details.",
@@ -136,6 +145,7 @@ func (this *ProcessPaymentDetourFixture) Test_DeclineErrorFromApplication_HTTP40
 	this.Do(NewProcessPaymentDetour)
 
 	this.So(this.ResponseStatus, should.Equal, http.StatusPaymentRequired)
+	this.So(this.ResponseHeaders.Get("Content-Type"), should.Equal, "application/json; charset=utf-8")
 	this.So(this.ResponseBodyJSON(), should.Resemble, map[string]interface{}{
 		"result":  "payment-context:payment-method-declined",
 		"message": "The payment method was declined by the issuing bank.",
@@ -149,6 +159,7 @@ func (this *ProcessPaymentDetourFixture) Test_HAPPY_HTTP200() {
 	this.Do(NewProcessPaymentDetour)
 
 	this.So(this.ResponseStatus, should.Equal, http.StatusOK)
+	this.So(this.ResponseHeaders.Get("Content-Type"), should.Equal, "application/json; charset=utf-8")
 	this.So(this.ResponseBodyJSON(), should.Resemble, map[string]interface{}{
 		"result": "payment-context:ok",
 		"data": map[string]interface{}{

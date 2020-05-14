@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
@@ -14,29 +16,17 @@ import (
 	"github.com/smartystreets/detour/v3"
 )
 
-type Fixture interface {
-	Printf(string, ...interface{})
-	AssertEqual(expected, actual interface{}) bool
-	Assert(condition bool, messages ...string) bool
-}
-
-func Initialize(gunit Fixture) *DetourFixture {
+func Initialize() *DetourFixture {
 	return &DetourFixture{
-		Fixture:         gunit,
-		Handler:         NewFakeHandler(),
-		RequestURL:      url.URL{Path: "/"},
-		RequestBody:     make(map[string]interface{}),
-		RequestHeaders:  make(http.Header),
-		RequestContext:  nil,
-		ResponseStatus:  0,
-		ResponseHeaders: nil,
-		ResponseBody:    "",
+		Handler:        NewFakeHandler(),
+		RequestURL:     url.URL{Path: "/"},
+		RequestBody:    make(map[string]interface{}),
+		RequestHeaders: make(http.Header),
+		Dump:           new(bytes.Buffer),
 	}
 }
 
 type DetourFixture struct {
-	Fixture
-
 	Handler *FakeHandler
 
 	RequestURL     url.URL
@@ -47,6 +37,8 @@ type DetourFixture struct {
 	ResponseStatus  int
 	ResponseHeaders http.Header
 	ResponseBody    string
+
+	Dump *bytes.Buffer
 }
 
 func (this *DetourFixture) SetQueryStringParameter(key, value string) {
@@ -67,14 +59,14 @@ func (this *DetourFixture) buildRequest() *http.Request {
 	request := httptest.NewRequest("GET", this.RequestURL.String(), bytes.NewReader(body))
 	request.Header = this.RequestHeaders
 	requestDump, _ := httputil.DumpRequest(request, true)
-	this.Printf("REQUEST DUMP:\n%s\n\n", formatDump(">", string(requestDump)))
+	fmt.Fprintf(this.Dump, "REQUEST DUMP:\n%s\n\n", formatDump(">", string(requestDump)))
 	this.RequestContext = request.Context()
 	return request
 }
 func (this *DetourFixture) collectResponse(recorder *httptest.ResponseRecorder) {
 	response := recorder.Result()
 	responseDump, _ := httputil.DumpResponse(response, true)
-	this.Printf("RESPONSE DUMP:\n%s\n\n", formatDump("<", string(responseDump)))
+	fmt.Fprintf(this.Dump, "RESPONSE DUMP:\n%s\n\n", formatDump("<", string(responseDump)))
 	body, _ := ioutil.ReadAll(response.Body)
 	this.ResponseBody = string(body)
 	this.ResponseStatus = response.StatusCode
@@ -87,8 +79,9 @@ func formatDump(prefix, dump string) string {
 }
 
 func (this *DetourFixture) ResponseBodyJSON() (actual map[string]interface{}) {
-	this.AssertEqual("application/json; charset=utf-8", this.ResponseHeaders.Get("Content-Type"))
 	err := json.Unmarshal([]byte(this.ResponseBody), &actual)
-	this.Assert(err == nil)
+	if err != nil {
+		log.Panicln("JSON UNMARSHAL:", err)
+	}
 	return actual
 }
