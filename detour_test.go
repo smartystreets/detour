@@ -65,7 +65,7 @@ func (this *DetourFixture) Test_MessagesPassedFromBindToHandler() {
 ///////////////////////////////////////////////////////////////
 
 type TestModel struct {
-	messages []interface{}
+	messages        []interface{}
 	boundRequest    *http.Request
 	renderedRequest *http.Request
 }

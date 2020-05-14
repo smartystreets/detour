@@ -1,20 +1,11 @@
 package main
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
-	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
-	"net/http/httputil"
-	"net/url"
-	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/smartystreets/assertions/should"
-	"github.com/smartystreets/detour/v3"
+	"github.com/smartystreets/detour/v3/detourtest"
 	"github.com/smartystreets/detour/v3/example/app"
 	"github.com/smartystreets/gunit"
 )
@@ -25,75 +16,22 @@ func TestProcessPaymentDetourFixture(t *testing.T) {
 
 type ProcessPaymentDetourFixture struct {
 	*gunit.Fixture
-
-	Handler *FakeHandler
-
-	RequestURL      url.URL
-	RequestURLQuery url.Values
-	RequestBody     map[string]interface{}
-	RequestHeaders  http.Header
-	RequestContext  context.Context
-
-	ResponseStatus  int
-	ResponseHeaders http.Header
-	ResponseBody    string
+	*detourtest.DetourFixture
 }
 
 func (this *ProcessPaymentDetourFixture) Setup() {
-	this.Handler = NewFakeHandler()
-	this.RequestHeaders = http.Header{
-		"Account-Id": []string{"1"},
-		"User-Agent": []string{"UserAgent"},
-	}
-	this.RequestBody = map[string]interface{}{
-		"amount":            2,
-		"order_id":          3,
-		"payment_method_id": 4,
-	}
-}
-
-func (this *ProcessPaymentDetourFixture) detour() {
-	request := this.buildRequest()
-	handler := detour.New(NewProcessPaymentDetour, this.Handler)
-	recorder := httptest.NewRecorder()
-	handler.ServeHTTP(recorder, request)
-	this.collectResponse(recorder)
-}
-func (this *ProcessPaymentDetourFixture) buildRequest() *http.Request {
-	body, _ := json.Marshal(this.RequestBody)
-	request := httptest.NewRequest("GET", "/", bytes.NewReader(body))
-	request.Header = this.RequestHeaders
-	requestDump, _ := httputil.DumpRequest(request, true)
-	this.Printf("REQUEST DUMP:\n%s\n\n", formatDump(">", string(requestDump)))
-	this.RequestContext = request.Context()
-	return request
-}
-func (this *ProcessPaymentDetourFixture) collectResponse(recorder *httptest.ResponseRecorder) {
-	response := recorder.Result()
-	responseDump, _ := httputil.DumpResponse(response, true)
-	this.Printf("RESPONSE DUMP:\n%s\n\n", formatDump("<", string(responseDump)))
-	body, _ := ioutil.ReadAll(response.Body)
-	this.ResponseBody = string(body)
-	this.ResponseStatus = response.StatusCode
-	this.ResponseHeaders = response.Header
-}
-func formatDump(prefix, dump string) string {
-	prefix = "\n" + prefix + " "
-	lines := strings.Split(strings.TrimSpace(dump), "\n")
-	return prefix + strings.Join(lines, prefix)
-}
-
-func (this *ProcessPaymentDetourFixture) ResponseBodyJSON() (actual map[string]interface{}) {
-	this.So(this.ResponseHeaders.Get("Content-Type"), should.Equal, "application/json; charset=utf-8")
-	err := json.Unmarshal([]byte(this.ResponseBody), &actual)
-	this.So(err, should.BeNil)
-	return actual
+	this.DetourFixture = detourtest.Initialize(this.Fixture)
+	this.RequestHeaders.Set("Account-Id", "1")
+	this.RequestHeaders.Set("User-Agent", "UserAgent")
+	this.RequestBody["amount"] = 2
+	this.RequestBody["order_id"] = 3
+	this.RequestBody["payment_method_id"] = 4
 }
 
 func (this *ProcessPaymentDetourFixture) Test_NoAccountID_HTTP500() {
 	this.RequestHeaders.Del("Account-Id")
 
-	this.detour()
+	this.Do(NewProcessPaymentDetour)
 
 	this.So(this.Handler.HandleCount, should.Equal, 0)
 	this.So(this.ResponseStatus, should.Equal, http.StatusInternalServerError)
@@ -102,7 +40,7 @@ func (this *ProcessPaymentDetourFixture) Test_NoAccountID_HTTP500() {
 func (this *ProcessPaymentDetourFixture) Test_MalformedJSON_HTTP400() {
 	this.RequestBody["invalid-type"] = make(chan int)
 
-	this.detour()
+	this.Do(NewProcessPaymentDetour)
 
 	this.So(this.Handler.HandleCount, should.Equal, 0)
 	this.So(this.ResponseStatus, should.Equal, http.StatusBadRequest)
@@ -111,7 +49,7 @@ func (this *ProcessPaymentDetourFixture) Test_MalformedJSON_HTTP400() {
 func (this *ProcessPaymentDetourFixture) Test_OrderIDRequired_HTTP422() {
 	delete(this.RequestBody, "order_id")
 
-	this.detour()
+	this.Do(NewProcessPaymentDetour)
 
 	this.So(this.Handler.HandleCount, should.Equal, 0)
 	this.So(this.ResponseStatus, should.Equal, http.StatusUnprocessableEntity)
@@ -129,7 +67,7 @@ func (this *ProcessPaymentDetourFixture) Test_OrderIDRequired_HTTP422() {
 func (this *ProcessPaymentDetourFixture) Test_AmountRequired_HTTP422() {
 	delete(this.RequestBody, "amount")
 
-	this.detour()
+	this.Do(NewProcessPaymentDetour)
 
 	this.So(this.Handler.HandleCount, should.Equal, 0)
 	this.So(this.ResponseStatus, should.Equal, http.StatusUnprocessableEntity)
@@ -147,7 +85,7 @@ func (this *ProcessPaymentDetourFixture) Test_AmountRequired_HTTP422() {
 func (this *ProcessPaymentDetourFixture) Test_PaymentMethodIDRequired_HTTP422() {
 	delete(this.RequestBody, "payment_method_id")
 
-	this.detour()
+	this.Do(NewProcessPaymentDetour)
 
 	this.So(this.Handler.HandleCount, should.Equal, 0)
 	this.So(this.ResponseStatus, should.Equal, http.StatusUnprocessableEntity)
@@ -167,7 +105,7 @@ func (this *ProcessPaymentDetourFixture) Test_MultipleRequiredFields_HTTP422() {
 	delete(this.RequestBody, "order_id")
 	delete(this.RequestBody, "payment_method_id")
 
-	this.detour()
+	this.Do(NewProcessPaymentDetour)
 
 	this.So(this.Handler.HandleCount, should.Equal, 0)
 	this.So(this.ResponseStatus, should.Equal, http.StatusUnprocessableEntity)
@@ -195,7 +133,7 @@ func (this *ProcessPaymentDetourFixture) Test_DeclineErrorFromApplication_HTTP40
 		command.(*app.ProcessPaymentCommand).Result.Error = app.ErrPaymentMethodDeclined
 	})
 
-	this.detour()
+	this.Do(NewProcessPaymentDetour)
 
 	this.So(this.ResponseStatus, should.Equal, http.StatusPaymentRequired)
 	this.So(this.ResponseBodyJSON(), should.Resemble, map[string]interface{}{
@@ -208,7 +146,7 @@ func (this *ProcessPaymentDetourFixture) Test_HAPPY_HTTP200() {
 		command.(*app.ProcessPaymentCommand).Result.PaymentID = 42
 	})
 
-	this.detour()
+	this.Do(NewProcessPaymentDetour)
 
 	this.So(this.ResponseStatus, should.Equal, http.StatusOK)
 	this.So(this.ResponseBodyJSON(), should.Resemble, map[string]interface{}{
@@ -234,34 +172,4 @@ func (this *ProcessPaymentDetourFixture) Test_HAPPY_HTTP200() {
 			},
 		},
 	})
-}
-
-/////////////////////////////////////////////////////////////////////
-
-type FakeHandler struct {
-	HandleCount int
-	Context     context.Context
-	Messages    []interface{}
-	Handlers    map[reflect.Type]func(interface{})
-}
-
-func NewFakeHandler() *FakeHandler {
-	return &FakeHandler{Handlers: make(map[reflect.Type]func(interface{}))}
-}
-
-func (this *FakeHandler) Prepare(message interface{}, callback func(interface{})) {
-	this.Handlers[reflect.TypeOf(message)] = callback
-}
-
-func (this *FakeHandler) Handle(ctx context.Context, messages ...interface{}) {
-	this.HandleCount++
-	this.Context = ctx
-	this.Messages = messages
-
-	for _, message := range messages {
-		callback := this.Handlers[reflect.TypeOf(message)]
-		if callback != nil {
-			callback(message)
-		}
-	}
 }
