@@ -1,4 +1,4 @@
-module github.com/smartystreets/detour
+module github.com/smartystreets/detour/v3
 
 go 1.13
 
