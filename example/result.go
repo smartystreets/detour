@@ -12,7 +12,7 @@ type BasicResult struct {
 	StatusCode int         `json:"-"`
 	Result     string      `json:"result,omitempty"`
 	Message    string      `json:"message,omitempty"`
-	Data       interface{} `json:"data"`
+	Data       interface{} `json:"data,omitempty"`
 }
 
 func LookupResult(err error) BasicResult {
@@ -51,6 +51,7 @@ type FieldError struct {
 }
 
 var (
-	invalidAmount  = FieldError{FieldName: "amount", Message: "a positive amount is required"}
-	invalidOrderID = FieldError{FieldName: "order_id", Message: "a valid order id is required"}
+	invalidAmount          = FieldError{FieldName: "amount", Message: "a positive amount is required"}
+	invalidOrderID         = FieldError{FieldName: "order_id", Message: "a valid order id is required"}
+	invalidPaymentMethodID = FieldError{FieldName: "payment_method_id", Message: "a valid payment method id is required"}
 )

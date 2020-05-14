@@ -8,7 +8,6 @@ type ProcessPaymentCommand struct {
 	OrderID         uint64
 	Amount          uint64
 	UserAgent       string
-	UserAddress     string
 	Result          struct {
 		PaymentID uint64
 		Error     error

@@ -5,11 +5,13 @@ import (
 	"net/http"
 )
 
-func New(detour func() Detour, handler handler) http.Handler {
+func New(detour func() Detour, handler Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 		detour := detour()
-		renderer := detour.Bind(request)
-		handler.Handle(request.Context(), renderer...)
+		messages := detour.Bind(request)
+		if len(messages) > 0 {
+			handler.Handle(request.Context(), messages...)
+		}
 		detour.Render(response, request)
 	})
 }
@@ -19,6 +21,6 @@ type Detour interface {
 	Render(http.ResponseWriter, *http.Request)
 }
 
-type handler interface {
+type Handler interface {
 	Handle(ctx context.Context, messages ...interface{})
 }

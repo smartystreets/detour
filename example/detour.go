@@ -60,6 +60,9 @@ func (this *ProcessPaymentDetour) validate() {
 	if this.OrderID == 0 {
 		validation = append(validation, invalidOrderID)
 	}
+	if this.PaymentMethodID == 0 {
+		validation = append(validation, invalidPaymentMethodID)
+	}
 	if len(validation) == 0 {
 		return
 	}
@@ -76,7 +79,6 @@ func (this *ProcessPaymentDetour) appendMessage(request *http.Request) (messages
 		PaymentMethodID: this.PaymentMethodID,
 		OrderID:         this.OrderID,
 		UserAgent:       strings.TrimSpace(request.UserAgent()),
-		UserAddress:     request.RemoteAddr,
 	}
 	return append(messages, this.command)
 }
@@ -84,8 +86,13 @@ func (this *ProcessPaymentDetour) appendMessage(request *http.Request) (messages
 func (this *ProcessPaymentDetour) Render(response http.ResponseWriter, request *http.Request) {
 	if this.renderer == nil {
 		result := LookupResult(this.command.Result.Error)
-		result.Data = ProcessedPaymentResult{PaymentID: this.command.Result.PaymentID}
-		this.renderer = render.JSONResult{Content: result, Indent: "  "}
+		if this.command.Result.Error == nil {
+			result.Data = ProcessedPaymentResult{PaymentID: this.command.Result.PaymentID}
+		}
+		this.renderer = render.JSONResult{
+			StatusCode: result.StatusCode,
+			Content:    result,
+		}
 	}
 	this.renderer.Render(response, request)
 }

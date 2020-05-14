@@ -39,7 +39,20 @@ func (this *DetourFixture) Model() Detour {
 	return this.model
 }
 
-func (this *DetourFixture) Test_ReturningRendererFromBindShortCircuitsHandler() {
+func (this *DetourFixture) Test_NoMessagesFromBindShortCircuitsHandler() {
+	this.model.messages = nil
+
+	New(this.Model, this).ServeHTTP(this.response, this.request)
+
+	this.So(this.model.boundRequest, should.Equal, this.request)
+	this.So(this.handledContext, should.BeNil)
+	this.So(this.handledMessages, should.BeNil)
+	this.So(this.response.Result().StatusCode, should.Equal, http.StatusTeapot)
+	this.So(this.model.renderedRequest, should.Equal, this.request)
+}
+func (this *DetourFixture) Test_MessagesPassedFromBindToHandler() {
+	this.model.messages = []interface{}{1, 2, 3}
+
 	New(this.Model, this).ServeHTTP(this.response, this.request)
 
 	this.So(this.model.boundRequest, should.Equal, this.request)
@@ -52,13 +65,14 @@ func (this *DetourFixture) Test_ReturningRendererFromBindShortCircuitsHandler() 
 ///////////////////////////////////////////////////////////////
 
 type TestModel struct {
+	messages []interface{}
 	boundRequest    *http.Request
 	renderedRequest *http.Request
 }
 
 func (this *TestModel) Bind(request *http.Request) (messages []interface{}) {
 	this.boundRequest = request
-	return []interface{}{1, 2, 3}
+	return this.messages
 }
 
 func (this *TestModel) Render(response http.ResponseWriter, request *http.Request) {
