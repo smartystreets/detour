@@ -8,7 +8,8 @@ import (
 func New(detour func() Detour, handler handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 		detour := detour()
-		handler.Handle(request.Context(), detour.Bind(request)...)
+		renderer := detour.Bind(request)
+		handler.Handle(request.Context(), renderer...)
 		detour.Render(response, request)
 	})
 }

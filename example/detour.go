@@ -16,8 +16,6 @@ type ProcessPaymentDetour struct {
 	PaymentMethodID uint64 `json:"payment_method_id"`
 	OrderID         uint64 `json:"order_id"`
 	Amount          uint64 `json:"amount"`
-	userAgent       string
-	userAddress     string
 
 	command  *app.ProcessPaymentCommand
 	renderer render.Renderer
@@ -27,19 +25,34 @@ func NewProcessPaymentDetour() detour.Detour {
 	return &ProcessPaymentDetour{}
 }
 
-func (this *ProcessPaymentDetour) Bind(request *http.Request) (messages []interface{}) {
+func (this *ProcessPaymentDetour) Bind(request *http.Request) []interface{} {
+	this.bind(request)
+	if this.renderer != nil {
+		return nil
+	}
+
+	this.validate()
+	if this.renderer != nil {
+		return nil
+	}
+
+	return this.appendMessage(request)
+}
+
+func (this *ProcessPaymentDetour) bind(request *http.Request) {
 	this.accountID, _ = strconv.ParseUint(request.Header.Get("Account-Id"), 10, 64)
 	if this.accountID == 0 {
 		this.renderer = render.StatusCodeResult{StatusCode: http.StatusInternalServerError}
-		return nil
+		return
 	}
 
 	err := json.NewDecoder(request.Body).Decode(this)
 	if err != nil {
 		this.renderer = render.StatusCodeResult{StatusCode: http.StatusBadRequest}
-		return nil
 	}
+}
 
+func (this *ProcessPaymentDetour) validate() {
 	var validation []FieldError
 	if this.Amount == 0 {
 		validation = append(validation, invalidAmount)
@@ -47,24 +60,24 @@ func (this *ProcessPaymentDetour) Bind(request *http.Request) (messages []interf
 	if this.OrderID == 0 {
 		validation = append(validation, invalidOrderID)
 	}
-	if len(validation) > 0 {
-		result := LookupResult(errValidation)
-		result.Data = validation
-		this.renderer = render.JSONResult{StatusCode: result.StatusCode, Content: result}
-		return nil
+	if len(validation) == 0 {
+		return
 	}
 
-	this.userAgent = strings.TrimSpace(request.UserAgent())
-	this.userAddress = request.RemoteAddr
+	result := LookupResult(errValidation)
+	result.Data = validation
+	this.renderer = render.JSONResult{StatusCode: result.StatusCode, Content: result}
+}
+
+func (this *ProcessPaymentDetour) appendMessage(request *http.Request) (messages []interface{}) {
 	this.command = &app.ProcessPaymentCommand{
 		AccountID:       this.accountID,
 		Amount:          this.Amount,
 		PaymentMethodID: this.PaymentMethodID,
 		OrderID:         this.OrderID,
-		UserAgent:       this.userAgent,
-		UserAddress:     this.userAddress,
+		UserAgent:       strings.TrimSpace(request.UserAgent()),
+		UserAddress:     request.RemoteAddr,
 	}
-
 	return append(messages, this.command)
 }
 
