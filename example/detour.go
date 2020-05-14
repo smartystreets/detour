@@ -19,22 +19,25 @@ type ProcessPaymentDetour struct {
 	userAgent       string
 	userAddress     string
 
-	command *app.ProcessPaymentCommand
+	command  *app.ProcessPaymentCommand
+	renderer render.Renderer
 }
 
 func NewProcessPaymentDetour() detour.Detour {
 	return &ProcessPaymentDetour{}
 }
 
-func (this *ProcessPaymentDetour) Bind(request *http.Request) render.Renderer {
+func (this *ProcessPaymentDetour) Bind(request *http.Request) (messages []interface{}) {
 	this.accountID, _ = strconv.ParseUint(request.Header.Get("Account-Id"), 10, 64)
 	if this.accountID == 0 {
-		return render.StatusCodeResult{StatusCode: http.StatusInternalServerError}
+		this.renderer = render.StatusCodeResult{StatusCode: http.StatusInternalServerError}
+		return nil
 	}
 
 	err := json.NewDecoder(request.Body).Decode(this)
 	if err != nil {
-		return render.StatusCodeResult{StatusCode: http.StatusBadRequest}
+		this.renderer = render.StatusCodeResult{StatusCode: http.StatusBadRequest}
+		return nil
 	}
 
 	var validation []FieldError
@@ -47,7 +50,8 @@ func (this *ProcessPaymentDetour) Bind(request *http.Request) render.Renderer {
 	if len(validation) > 0 {
 		result := LookupResult(errValidation)
 		result.Data = validation
-		return render.JSONResult{StatusCode: result.StatusCode, Content: result}
+		this.renderer = render.JSONResult{StatusCode: result.StatusCode, Content: result}
+		return nil
 	}
 
 	this.userAgent = strings.TrimSpace(request.UserAgent())
@@ -60,17 +64,17 @@ func (this *ProcessPaymentDetour) Bind(request *http.Request) render.Renderer {
 		UserAgent:       this.userAgent,
 		UserAddress:     this.userAddress,
 	}
-	return nil
-}
 
-func (this *ProcessPaymentDetour) MessagesToHandle() (messages []interface{}) {
 	return append(messages, this.command)
 }
 
-func (this *ProcessPaymentDetour) Render() render.Renderer {
-	result := LookupResult(this.command.Result.Error)
-	result.Data = ProcessedPaymentResult{PaymentID: this.command.Result.PaymentID}
-	return render.JSONResult{Content: result, Indent: "  "}
+func (this *ProcessPaymentDetour) Render(response http.ResponseWriter, request *http.Request) {
+	if this.renderer == nil {
+		result := LookupResult(this.command.Result.Error)
+		result.Data = ProcessedPaymentResult{PaymentID: this.command.Result.PaymentID}
+		this.renderer = render.JSONResult{Content: result, Indent: "  "}
+	}
+	this.renderer.Render(response, request)
 }
 
 type ProcessedPaymentResult struct {
