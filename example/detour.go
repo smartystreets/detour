@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -19,6 +18,8 @@ type ProcessPaymentDetour struct {
 	Amount          uint64 `json:"amount"`
 	userAgent       string
 	userAddress     string
+
+	command *app.ProcessPaymentCommand
 }
 
 func NewProcessPaymentDetour() detour.Detour {
@@ -51,11 +52,7 @@ func (this *ProcessPaymentDetour) Bind(request *http.Request) render.Renderer {
 
 	this.userAgent = strings.TrimSpace(request.UserAgent())
 	this.userAddress = request.RemoteAddr
-	return nil
-}
-
-func (this *ProcessPaymentDetour) Handle(ctx context.Context, handler detour.Handler) render.Renderer {
-	command := &app.ProcessPaymentCommand{
+	this.command = &app.ProcessPaymentCommand{
 		AccountID:       this.accountID,
 		Amount:          this.Amount,
 		PaymentMethodID: this.PaymentMethodID,
@@ -63,11 +60,16 @@ func (this *ProcessPaymentDetour) Handle(ctx context.Context, handler detour.Han
 		UserAgent:       this.userAgent,
 		UserAddress:     this.userAddress,
 	}
+	return nil
+}
 
-	handler.Handle(ctx, command)
+func (this *ProcessPaymentDetour) MessagesToHandle() (messages []interface{}) {
+	return append(messages, this.command)
+}
 
-	result := LookupResult(command.Result.Error)
-	result.Data = ProcessedPaymentResult{PaymentID: command.Result.PaymentID}
+func (this *ProcessPaymentDetour) Render() render.Renderer {
+	result := LookupResult(this.command.Result.Error)
+	result.Data = ProcessedPaymentResult{PaymentID: this.command.Result.PaymentID}
 	return render.JSONResult{Content: result, Indent: "  "}
 }
 

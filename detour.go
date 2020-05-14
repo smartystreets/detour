@@ -7,12 +7,13 @@ import (
 	"github.com/smartystreets/detour/v3/render"
 )
 
-func New(detour func() Detour, handler Handler) http.Handler {
+func New(detour func() Detour, handler handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 		detour := detour()
 		renderer := detour.Bind(request)
 		if renderer == nil {
-			renderer = detour.Handle(request.Context(), handler)
+			handler.Handle(request.Context(), detour.MessagesToHandle()...)
+			renderer = detour.Render()
 		}
 		if renderer != nil {
 			renderer.Render(response, request)
@@ -22,9 +23,10 @@ func New(detour func() Detour, handler Handler) http.Handler {
 
 type Detour interface {
 	Bind(*http.Request) render.Renderer
-	Handle(context.Context, Handler) render.Renderer
+	MessagesToHandle() []interface{}
+	Render() render.Renderer
 }
 
-type Handler interface {
+type handler interface {
 	Handle(ctx context.Context, messages ...interface{})
 }

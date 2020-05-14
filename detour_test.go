@@ -2,6 +2,7 @@ package detour
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -61,7 +62,7 @@ func (this *DetourFixture) Test_ReturningRendererFromBindShortCircuitsHandler() 
 func (this *DetourFixture) Test_ReturningNilFromBindAllowsHandlerToBeInvoked() {
 	this.model.bindRenderer = nil
 	this.model.handleRenderer = render.StatusCodeResult{StatusCode: http.StatusCreated}
-	this.model.handleMessages = []interface{}{1, 2, 3}
+	this.model.messages = []interface{}{1, 2, 3}
 
 	New(this.Model, this).ServeHTTP(this.response, this.request)
 
@@ -72,7 +73,7 @@ func (this *DetourFixture) Test_ReturningNilFromBindAllowsHandlerToBeInvoked() {
 func (this *DetourFixture) Test_ReturningNilFromBindAndHandler_HTTP200() {
 	this.model.bindRenderer = nil
 	this.model.handleRenderer = nil
-	this.model.handleMessages = []interface{}{1, 2, 3}
+	this.model.messages = []interface{}{1, 2, 3}
 
 	New(this.Model, this).ServeHTTP(this.response, this.request)
 
@@ -84,10 +85,9 @@ func (this *DetourFixture) Test_ReturningNilFromBindAndHandler_HTTP200() {
 ///////////////////////////////////////////////////////////////
 
 type TestModel struct {
-	boundRequest *http.Request
-	bindRenderer render.Renderer
-
-	handleMessages []interface{}
+	boundRequest   *http.Request
+	bindRenderer   render.Renderer
+	messages       []interface{}
 	handleRenderer render.Renderer
 }
 
@@ -96,7 +96,16 @@ func (this *TestModel) Bind(request *http.Request) render.Renderer {
 	return this.bindRenderer
 }
 
-func (this *TestModel) Handle(ctx context.Context, handler Handler) render.Renderer {
-	handler.Handle(ctx, this.handleMessages...)
+func (this *TestModel) MessagesToHandle() []interface{} {
+	return this.messages
+}
+
+func (this *TestModel) Render() render.Renderer {
 	return this.handleRenderer
+}
+
+type StringRenderer string
+
+func (this StringRenderer) Render(response http.ResponseWriter, request *http.Request) {
+	_, _ = io.WriteString(response, string(this))
 }
