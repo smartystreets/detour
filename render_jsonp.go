@@ -1,9 +1,9 @@
 package detour
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 type JSONPResult struct {
@@ -23,11 +23,11 @@ func (this JSONPResult) Render(response http.ResponseWriter, request *http.Reque
 }
 
 func wrapJSONP(content []byte, label string) []byte {
-	serialized := strings.TrimSpace(string(content))
+	serialized := bytes.TrimSpace(content)
 	if len(label) > 0 {
-		serialized = fmt.Sprintf("%s(%s)", label, serialized)
+		serialized = []byte(fmt.Sprintf("%s(%s)", label, serialized))
 	}
-	return []byte(serialized)
+	return serialized
 }
 
 func callbackLabel(request *http.Request) string {
