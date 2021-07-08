@@ -3,10 +3,8 @@ package detour
 import (
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"io"
 	"net/http"
-	"net/http/httputil"
 )
 
 /* ------------------------------------------------------------------------- */
@@ -124,18 +122,6 @@ type ReaderBodyRenderer struct{ io.Reader }
 
 func (this ReaderBodyRenderer) Render(response http.ResponseWriter, _ *http.Request) {
 	_, _ = io.Copy(response, this.Reader)
-}
-
-/* ------------------------------------------------------------------------- */
-
-type DiagnosticBodyRenderer string
-
-func (this DiagnosticBodyRenderer) Render(response http.ResponseWriter, request *http.Request) {
-	statusCode := response.(*responseBuffer).StatusCode()
-	dump, _ := httputil.DumpRequest(request, false)
-	requestDump := formatRequestDump(string(dump))
-	message := fmt.Sprintf(diagnosticTemplate, statusCode, this, requestDump, disclaimer)
-	http.Error(response, message, statusCode)
 }
 
 /* ------------------------------------------------------------------------- */

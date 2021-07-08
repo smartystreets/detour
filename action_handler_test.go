@@ -94,29 +94,6 @@ func (this *ModelBinderFixture) TestBindsModelAndHandlesNilErrors() {
 	this.So(this.response.Code, should.Equal, 200)
 }
 
-func (this *ModelBinderFixture) TestBindModelAndHandleError__HTTP400_DiagnosticsResponse() {
-	binder := New(this.controller.HandleBindingFailsInputModelWithDiagnostics)
-	binder.ServeHTTP(this.response, this.request)
-	this.So(this.response.Code, should.Equal, 400)
-	this.So(this.response.Result().Header.Get(contentTypeHeader), should.Equal, plaintextContentType)
-	this.So(this.response.Body.String(), should.ContainSubstring, "400 BindingFailsInputModel")
-	this.So(this.response.Body.String(), should.ContainSubstring, "Raw Request:")
-	this.So(this.response.Body.String(), should.ContainSubstring, "/?binding=BindingInputModel") // from the URL
-	this.So(this.response.Body.String(), should.ContainSubstring, "---- DISCLAIMER ----")
-}
-
-func (this *ModelBinderFixture) TestBindModelAndHandleError__HTTP400_DiagnosticErrorsResponse() {
-	binder := New(this.controller.HandleBindingFailsInputModelWithDiagnosticErrors)
-	binder.ServeHTTP(this.response, this.request)
-	this.So(this.response.Code, should.Equal, 400)
-	this.So(this.response.Result().Header.Get(contentTypeHeader), should.Equal, plaintextContentType)
-	this.So(this.response.Body.String(), should.ContainSubstring, "400 Bad Request")
-	this.So(this.response.Body.String(), should.ContainSubstring, "BindingFailsInputModel")
-	this.So(this.response.Body.String(), should.ContainSubstring, "Raw Request:")
-	this.So(this.response.Body.String(), should.ContainSubstring, "/?binding=BindingInputModel") // from the URL
-	this.So(this.response.Body.String(), should.ContainSubstring, "---- DISCLAIMER ----")
-}
-
 func (this *ModelBinderFixture) TestBindsModelEmptyValidationErrors__HTTP200() {
 	binder := New(this.controller.HandleBindingSucceedsInputModelWithEmptyDiagnosticErrors)
 	binder.ServeHTTP(this.response, this.request)

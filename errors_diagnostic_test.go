@@ -39,21 +39,3 @@ func (this *DiagnosticErrorsFixture) TestMultipleErrors_OrderedList() {
 	err = err.AppendIf(errors.New("B"), true)
 	this.So(err.Error(), should.Equal, "Errors:\n\n1. A\n2. B")
 }
-
-func (this *DiagnosticErrorsFixture) TestPrintRenderedDiagnosticResult() {
-	var err DiagnosticErrors
-	err = err.Append(errors.New("horizontal boosters"))
-	err = err.Append(errors.New("alluvial dampers"))
-	err = err.Append(errors.New("that's not it, bring me the hydrospanner"))
-	err = err.Append(errors.New("I don't know how we're going to get out of this one"))
-	result := &DiagnosticResult{
-		StatusCode: http.StatusBadRequest,
-		Message:    "Bad Request\n\n" + err.Error(),
-	}
-
-	result.Render(this.response, this.request)
-
-	this.So(this.response.Result().StatusCode, should.Equal, http.StatusBadRequest)
-	this.So(this.response.Body.String(), should.StartWith, "400 Bad Request")
-	//this.Println(this.response.Body.String()) // Uncomment when fiddling with the formatting of the rendered result.
-}

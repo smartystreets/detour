@@ -155,19 +155,6 @@ func (this *ResponsesFixture) TestReaderBodyRenderer() {
 	this.assertNoResponseHeaders()
 	this.assertBody("Hello, world!")
 }
-func (this *ResponsesFixture) TestDiagnosticBodyRenderer() {
-	this.render(
-		StatusCodeRenderer(http.StatusTeapot),
-		DiagnosticBodyRenderer("Hello, world!"),
-	)
-	this.assertStatusCode(http.StatusTeapot)
-	this.assertHeaders(
-		"Content-Type", "text/plain; charset=utf-8",
-		"X-Content-Type-Options", "nosniff",
-	)
-	this.assertBodyContains("418 Hello, world!")
-	this.assertBodyContains("Raw Request:")
-}
 func (this *ResponsesFixture) TestXMLBodyRenderer() {
 	this.render(XMLBodyRenderer{Content: "Hello, world!"})
 	this.assertStatusOK()
