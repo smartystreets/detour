@@ -50,6 +50,10 @@ func inputModelErrorResult(code int, err error) Renderer {
 		return &DiagnosticResult{StatusCode: code, Message: http.StatusText(code) + "\n\n" + err.Error()}
 	}
 
+	if errRenderer, ok := err.(Renderer); ok {
+		return errRenderer
+	}
+
 	return &StatusCodeResult{StatusCode: code, Message: err.Error()}
 }
 
